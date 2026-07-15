@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/toyz/web-design-material/apps/**)",
+      "Read(//c/toyz/web-design-material/**)"
+    ]
+  }
+}
