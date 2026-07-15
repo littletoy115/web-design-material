@@ -8,7 +8,7 @@ import { useAuthStore } from './store/auth.store';
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { token, user } = useAuthStore();
   if (!token) return <Navigate to="/login" replace />;
-  if (user?.role !== 'admin') return <Navigate to="/login" replace />;
+  if (user?.role !== 'ADMIN') return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 

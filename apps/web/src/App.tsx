@@ -1,11 +1,13 @@
 import { Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
+import HyamaxPage from './pages/hyamax/HyamaxPage';
+import CosmelinePage from './pages/cosmeline/CosmelinePage';
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="*" element={<HomePage />} />
+      <Route path="/" element={<HyamaxPage />} />
+      <Route path="/cosmeline" element={<CosmelinePage />} />
+      <Route path="*" element={<HyamaxPage />} />
     </Routes>
   );
 }

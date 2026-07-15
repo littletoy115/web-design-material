@@ -3,6 +3,12 @@
     "allow": [
       "Read(//c/toyz/web-design-material/apps/**)",
       "Read(//c/toyz/web-design-material/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\toyz\\web-design-material\\packages\\types\\src",
+      "c:\\toyz\\web-design-material\\apps\\api\\src\\controllers",
+      "c:\\toyz\\web-design-material\\apps\\api\\src\\routes",
+      "c:\\toyz\\web-design-material\\apps\\api\\scripts"
     ]
   }
 }

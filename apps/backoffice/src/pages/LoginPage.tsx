@@ -14,16 +14,21 @@ export default function LoginPage() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
 
-    // Dev bypass: use admin@demo.com / admin123 to skip API call
+  
     if (import.meta.env.DEV && email === 'admin@demo.com' && password === 'admin123') {
-      setAuth('dev-token', { id: 'dev', email: 'admin@demo.com', name: 'Admin (Dev)', role: 'admin' });
-      navigate('/');
+      try {
+        const { data } = await api.post<{ success: boolean; data: LoginResponse }>('/api/auth/dev-login');
+        setAuth(data.data.token, data.data.user);
+        navigate('/');
+      } catch {
+        setError('Dev login failed — is the API running?');
+      }
       return;
     }
 
     try {
       const { data } = await api.post<{ success: boolean; data: LoginResponse }>('/api/auth/login', { email, password });
-      if (data.data.user.role !== 'admin') {
+      if (data.data.user.role !== 'ADMIN') {
         setError('Admin access only');
         return;
       }
@@ -38,11 +43,6 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <form onSubmit={handleLogin} className="bg-gray-800 p-8 rounded-xl shadow w-full max-w-sm space-y-4">
         <h1 className="text-2xl font-bold text-white text-center">Admin Login</h1>
-        {import.meta.env.DEV && (
-          <p className="text-yellow-400 text-xs text-center">
-            Dev: <span className="font-mono">admin@demo.com</span> / <span className="font-mono">admin123</span>
-          </p>
-        )}
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <input
           type="email"
