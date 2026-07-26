@@ -36,6 +36,14 @@ const emptyForm = {
   notes: '',
 };
 
+const STATUS_OPTIONS: { value: MemoDocument['status']; label: string }[] = [
+  { value: 'PENDING_AUDIT', label: 'รอ Audit' },
+  { value: 'PENDING_MANAGER', label: 'รอ Manager' },
+  { value: 'PENDING_LOGISTIC', label: 'รอ Logistics' },
+  { value: 'DELIVERED', label: 'จัดส่งแล้ว' },
+  { value: 'REJECTED', label: 'Rejected' },
+];
+
 function statusBadge(doc: MemoDocument) {
   if (doc.status === 'REJECTED') {
     return <span className="px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-700">Rejected</span>;
@@ -65,8 +73,19 @@ export default function DocumentsPage() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [rejectError, setRejectError] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const canCreate = user?.role === 'SALE' || user?.role === 'ADMIN';
+
+  const filteredDocs = docs.filter((d) => {
+    if (statusFilter && d.status !== statusFilter) return false;
+    const created = d.createdAt.slice(0, 10);
+    if (dateFrom && created < dateFrom) return false;
+    if (dateTo && created > dateTo) return false;
+    return true;
+  });
 
   function loadDocs() {
     setLoading(true);
@@ -185,6 +204,48 @@ export default function DocumentsPage() {
         )}
       </div>
 
+      <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">สถานะ</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="">ทั้งหมด</option>
+            {STATUS_OPTIONS.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">วันที่ตั้งแต่</label>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">ถึงวันที่</label>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        {(statusFilter || dateFrom || dateTo) && (
+          <button
+            onClick={() => { setStatusFilter(''); setDateFrom(''); setDateTo(''); }}
+            className="text-sm text-gray-500 hover:text-gray-700 px-3 py-2"
+          >
+            ล้างตัวกรอง
+          </button>
+        )}
+      </div>
+
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -203,7 +264,7 @@ export default function DocumentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {docs.map((d) => (
+              {filteredDocs.map((d) => (
                 <tr key={d.id}>
                   <td className="px-6 py-4 font-medium">{d.docNo}</td>
                   <td className="px-6 py-4">{d.subject}</td>
@@ -226,7 +287,7 @@ export default function DocumentsPage() {
 
           {/* Card view (below md) */}
           <div className="md:hidden divide-y divide-gray-100">
-            {docs.map((d) => (
+            {filteredDocs.map((d) => (
               <button
                 key={d.id}
                 onClick={() => setSelected(d)}
@@ -245,7 +306,7 @@ export default function DocumentsPage() {
             ))}
           </div>
 
-          {docs.length === 0 && <p className="text-center text-gray-400 py-8">No documents found</p>}
+          {filteredDocs.length === 0 && <p className="text-center text-gray-400 py-8">No documents found</p>}
         </div>
       )}
 
