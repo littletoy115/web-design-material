@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import * as XLSX from 'xlsx';
 import api from '../services/api';
 import { useAuthStore } from '../store/auth.store';
 import { MemoDocument, MemoRow, Product } from '@repo/types';
@@ -43,6 +44,65 @@ const STATUS_OPTIONS: { value: MemoDocument['status']; label: string }[] = [
   { value: 'DELIVERED', label: 'จัดส่งแล้ว' },
   { value: 'REJECTED', label: 'Rejected' },
 ];
+
+function statusLabel(status: MemoDocument['status']) {
+  return STATUS_OPTIONS.find((s) => s.value === status)?.label ?? status;
+}
+
+function exportRowsExcel(docs: MemoDocument[]) {
+  const data = docs.flatMap((d) =>
+    d.rows.map((r) => ({
+      'เลขที่เอกสาร': d.docNo,
+      'เรื่อง': d.subject,
+      'จาก': d.fromName,
+      'คลินิก': d.clinicName ?? '',
+      'วันที่': new Date(d.createdAt).toLocaleDateString('th-TH'),
+      'สถานะ': statusLabel(d.status),
+      'สินค้า': r.name,
+      'SKU': r.sku,
+      'จำนวน': r.qty,
+    }))
+  );
+  const sheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, sheet, 'รายการ');
+  XLSX.writeFile(workbook, `memo-documents-${Date.now()}.xlsx`);
+}
+
+function exportOverviewExcel(docs: MemoDocument[]) {
+  const summaryRows = docs.map((d) => ({
+    'เลขที่เอกสาร': d.docNo,
+    'เรื่อง': d.subject,
+    'จาก': d.fromName,
+    'คลินิก': d.clinicName ?? '',
+    'วันที่': new Date(d.createdAt).toLocaleDateString('th-TH'),
+    'สถานะ': statusLabel(d.status),
+    'จำนวนรายการสินค้า': d.rows.length,
+    'รวมจำนวนที่ขอเบิก': d.rows.reduce((sum, r) => sum + r.qty, 0),
+  }));
+
+  const statusCounts = STATUS_OPTIONS.map((s) => ({
+    'สถานะ': s.label,
+    'จำนวนเอกสาร': docs.filter((d) => d.status === s.value).length,
+  }));
+
+  const productTotals = new Map<string, number>();
+  for (const d of docs) {
+    for (const r of d.rows) {
+      productTotals.set(r.name, (productTotals.get(r.name) ?? 0) + r.qty);
+    }
+  }
+  const productRows = Array.from(productTotals.entries()).map(([name, qty]) => ({
+    'สินค้า': name,
+    'รวมจำนวนที่ขอเบิก': qty,
+  }));
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(summaryRows), 'เอกสารทั้งหมด');
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(statusCounts), 'สรุปตามสถานะ');
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(productRows), 'สรุปตามสินค้า');
+  XLSX.writeFile(workbook, `memo-overview-${Date.now()}.xlsx`);
+}
 
 function statusBadge(doc: MemoDocument) {
   if (doc.status === 'REJECTED') {
@@ -244,6 +304,22 @@ export default function DocumentsPage() {
             ล้างตัวกรอง
           </button>
         )}
+        <div className="sm:ml-auto flex gap-2">
+          <button
+            onClick={() => exportRowsExcel(filteredDocs)}
+            disabled={filteredDocs.length === 0}
+            className="text-sm bg-green-100 text-green-700 px-3 py-2 rounded-lg hover:bg-green-200 disabled:opacity-50"
+          >
+            Export Excel (รายละเอียด)
+          </button>
+          <button
+            onClick={() => exportOverviewExcel(filteredDocs)}
+            disabled={filteredDocs.length === 0}
+            className="text-sm bg-blue-100 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-200 disabled:opacity-50"
+          >
+            Export Excel (ภาพรวม)
+          </button>
+        </div>
       </div>
 
       {loading ? (
