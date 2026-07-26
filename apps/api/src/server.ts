@@ -5,6 +5,8 @@ import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth.route';
 import userRoutes from './routes/user.route';
+import documentRoutes from './routes/document.route';
+import productRoutes from './routes/product.route';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { setupSocket } from './socket';
 
@@ -29,6 +31,8 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/documents', documentRoutes);
+app.use('/api/products', productRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });

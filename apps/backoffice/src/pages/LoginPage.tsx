@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import api from '../services/api';
 import { LoginResponse } from '@repo/types';
@@ -28,10 +28,6 @@ export default function LoginPage() {
 
     try {
       const { data } = await api.post<{ success: boolean; data: LoginResponse }>('/api/auth/login', { email, password });
-      if (data.data.user.role !== 'ADMIN') {
-        setError('Admin access only');
-        return;
-      }
       setAuth(data.data.token, data.data.user);
       navigate('/');
     } catch {
@@ -40,9 +36,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <form onSubmit={handleLogin} className="bg-gray-800 p-8 rounded-xl shadow w-full max-w-sm space-y-4">
-        <h1 className="text-2xl font-bold text-white text-center">Admin Login</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
+      <form onSubmit={handleLogin} className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow w-full max-w-sm space-y-4">
+        <h1 className="text-2xl font-bold text-white text-center">Login</h1>
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <input
           type="email"
@@ -63,6 +59,12 @@ export default function LoginPage() {
         <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
           Sign In
         </button>
+        <p className="text-gray-400 text-sm text-center">
+          Don't have an account?{' '}
+          <Link to="/register" className="text-blue-400 hover:underline">
+            Sign Up
+          </Link>
+        </p>
       </form>
     </div>
   );

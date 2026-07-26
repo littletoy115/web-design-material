@@ -4,12 +4,14 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../server';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
+const VALID_ROLES = ['USER', 'ADMIN', 'SALE', 'AUDIT', 'MANAGER', 'LOGISTIC'];
+
 export async function register(req: Request, res: Response) {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, role } = req.body;
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { email, password: hashed, name },
+      data: { email, password: hashed, name, role: VALID_ROLES.includes(role) ? role : 'USER' },
       select: { id: true, email: true, name: true, role: true, createdAt: true },
     });
     res.status(201).json({ success: true, data: user });

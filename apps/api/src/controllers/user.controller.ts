@@ -15,6 +15,8 @@ export async function getUsers(_req: AuthRequest, res: Response) {
   }
 }
 
+const VALID_ROLES = ['USER', 'ADMIN', 'SALE', 'AUDIT', 'MANAGER', 'LOGISTIC'];
+
 export async function createUser(req: AuthRequest, res: Response) {
   try {
     const { name, email, password, role } = req.body;
@@ -24,7 +26,7 @@ export async function createUser(req: AuthRequest, res: Response) {
     }
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { name, email, password: hashed, role: role === 'ADMIN' ? 'ADMIN' : 'USER' },
+      data: { name, email, password: hashed, role: VALID_ROLES.includes(role) ? role : 'USER' },
       select: { id: true, email: true, name: true, role: true, createdAt: true },
     });
     res.status(201).json({ success: true, data: user });
@@ -38,9 +40,9 @@ export async function updateUser(req: AuthRequest, res: Response) {
     const { id } = req.params;
     const { name, role } = req.body;
 
-    const data: { name?: string; role?: 'USER' | 'ADMIN' } = {};
+    const data: { name?: string; role?: 'USER' | 'ADMIN' | 'SALE' | 'AUDIT' | 'MANAGER' | 'LOGISTIC' } = {};
     if (name !== undefined) data.name = name;
-    if (role === 'USER' || role === 'ADMIN') data.role = role;
+    if (VALID_ROLES.includes(role)) data.role = role;
 
     const user = await prisma.user.update({
       where: { id },

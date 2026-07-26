@@ -23,4 +23,76 @@ model User {
 enum Role {
   USER
   ADMIN
+  SALE
+  AUDIT
+  MANAGER
+  LOGISTIC
+}
+
+model MemoDocument {
+  id            String         @id @default(cuid())
+  docNo         String         @unique
+  toName        String?
+  toPosition    String?
+  toDept        String?
+  fromName      String
+  fromPosition  String
+  fromDept      String
+  subject       String
+  clinicName      String?
+  deliveryAddress String?
+  rows          Json
+  notes         String?
+  status        MemoStatus     @default(PENDING_AUDIT)
+  createdById   String
+  createdByName String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  approvals     MemoApproval[]
+
+  @@map("memo_documents")
+}
+
+model MemoApproval {
+  id             String         @id @default(cuid())
+  documentId     String
+  document       MemoDocument   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  step           Int
+  role           Role
+  label          String
+  status         ApprovalStatus @default(PENDING)
+  approvedById   String?
+  approvedByName String?
+  reason         String?
+  decidedAt      DateTime?
+
+  @@map("memo_approvals")
+}
+
+enum MemoStatus {
+  PENDING_AUDIT
+  PENDING_MANAGER
+  PENDING_LOGISTIC
+  DELIVERED
+  REJECTED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  sku         String   @unique
+  name        String
+  category    String?
+  price       Decimal  @default(0) @db.Decimal(12, 2)
+  stock       Int      @default(0)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
 }
