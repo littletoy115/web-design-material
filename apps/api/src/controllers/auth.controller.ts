@@ -15,8 +15,13 @@ export async function register(req: Request, res: Response) {
       select: { id: true, email: true, name: true, role: true, createdAt: true },
     });
     res.status(201).json({ success: true, data: user });
-  } catch (err: unknown) {
-    res.status(400).json({ success: false, error: 'Email already exists' });
+  } catch (err: any) {
+    console.error('register error:', err);
+    if (err?.code === 'P2002') {
+      res.status(400).json({ success: false, error: 'Email already exists' });
+      return;
+    }
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 }
 
