@@ -28,7 +28,7 @@ pnpm install
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 cp apps/backoffice/.env.example apps/backoffice/.env
-# แก้ไขค่าใน .env ให้ถูกต้อง
+# Edit the values in .env
 ```
 
 ### 3. Setup database

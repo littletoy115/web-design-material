@@ -274,7 +274,7 @@ export default function ProductsPage() {
                       <p className="font-medium truncate">{p.name}</p>
                       <p className="text-gray-500 text-sm truncate">{p.sku} · {p.category || '—'}</p>
                       <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                        <span>฿{Number(p.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <span>THB {Number(p.price).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                         <span>· Stock: {p.stock}</span>
                       </div>
                     </div>

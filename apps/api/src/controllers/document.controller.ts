@@ -68,7 +68,7 @@ export async function createDocument(req: AuthRequest, res: Response) {
         return;
       }
       if (row.qty > product.stock) {
-        res.status(400).json({ success: false, error: `${product.name} คงเหลือ ${product.stock} ไม่สามารถขอเบิก ${row.qty} ได้` });
+        res.status(400).json({ success: false, error: `${product.name} has ${product.stock} in stock, so ${row.qty} can't be requested.` });
         return;
       }
     }
@@ -104,7 +104,7 @@ export async function createDocument(req: AuthRequest, res: Response) {
               {
                 step: 1,
                 role: 'SALE',
-                label: 'ผู้ขออนุมัติ',
+                label: 'Requester',
                 status: 'APPROVED',
                 approvedById: req.user!.id,
                 approvedByName: fromName,
