@@ -1,3 +1,5 @@
+import catalog3d from './catalog3d.json';
+
 export type Weave = 'plain' | 'stripe' | 'check' | 'shibori' | 'herringbone';
 export type Garment =
   // tops
@@ -24,8 +26,8 @@ export const garmentSlot: Record<Garment, Slot> = {
   bucket: 'hat', cap: 'hat', beanie: 'hat', straw: 'hat',
 };
 
-export type Category = 'Tops' | 'Outerwear' | 'Pants' | 'Skirts' | 'Dresses' | 'Shoes' | 'Hats';
-export const categories: Category[] = ['Tops', 'Outerwear', 'Pants', 'Skirts', 'Dresses', 'Shoes', 'Hats'];
+export type Category = 'Tops' | 'Outerwear' | 'Pants' | 'Skirts' | 'Dresses' | 'Sets' | 'Shoes' | 'Hats';
+export const categories: Category[] = ['Tops', 'Outerwear', 'Pants', 'Skirts', 'Dresses', 'Sets', 'Shoes', 'Hats'];
 
 export interface Fabric {
   id: string;
@@ -43,11 +45,21 @@ export interface Product {
   id: string;
   name: string;
   category: Category;
-  garment: Garment;
-  fabricId: string;
+  slot: Slot;
   price: number;
   sizes: string[];
   isNew?: boolean;
+  /** Homfaai pieces: drawn shape and woven fabric (also used as the 3D texture) */
+  garment?: Garment;
+  fabricId?: string;
+  /** id of the fitted 3D garment in /models (MakeHuman) */
+  model?: string;
+  /** product picture, for pieces without a drawn shape */
+  image?: string;
+  /** third-party 3D asset: who made it and under which licence */
+  credit?: { author: string; license: string };
+  /** sample piece added to try out the 3D fitting room, not a Homfaai product */
+  sample?: boolean;
 }
 
 export interface Review {
@@ -131,7 +143,10 @@ export const fabrics: Fabric[] = [
 const SHOE_SIZES = ['38', '39', '40', '41', '42', '43', '44'];
 const ONE_SIZE = ['One size'];
 
-export const products: Product[] = [
+/** Homfaai's own pieces: a drawn shape plus one of our woven fabrics. */
+type OwnProduct = Omit<Product, 'slot'> & { garment: Garment; fabricId: string };
+
+const ownProducts: OwnProduct[] = [
   { id: 'p01', name: 'Mandarin Collar Shirt, Phrae Indigo', category: 'Tops', garment: 'shirt', fabricId: 'hom-indigo', price: 1290, sizes: ['S', 'M', 'L', 'XL'], isNew: true },
   { id: 'p02', name: 'Work Jacket, Herringbone', category: 'Outerwear', garment: 'jacket', fabricId: 'handspun', price: 2450, sizes: ['M', 'L', 'XL'], isNew: true },
   { id: 'p03', name: 'Sleeveless Dress, Tie-Dye', category: 'Dresses', garment: 'dress', fabricId: 'shibori', price: 1890, sizes: ['S', 'M', 'L'], isNew: true },
@@ -162,6 +177,75 @@ export const products: Product[] = [
   { id: 'p28', name: 'Beanie, Phrae Indigo', category: 'Hats', garment: 'beanie', fabricId: 'hom-indigo', price: 450, sizes: ONE_SIZE },
   { id: 'p29', name: 'Wide-Brim Hat, Handspun Cotton', category: 'Hats', garment: 'straw', fabricId: 'handspun', price: 890, sizes: ONE_SIZE },
   { id: 'p30', name: 'Wide-Leg Trousers, Tie-Dye', category: 'Pants', garment: 'wide', fabricId: 'shibori', price: 1390, sizes: ['S', 'M', 'L'] },
+];
+
+/** Closest fitted 3D garment for each of our shapes; our woven fabric is laid over it in the fitting room. */
+const MODEL_FOR: Partial<Record<Garment, string>> = {
+  tee: 'elvs-crude-t-shirt-male',
+  shirt: 'namuhekam-male-polo-shirt',
+  longshirt: 'elvs-male-shirt-untucked-bd1',
+  tank: 'mindfront-tank-top-01',
+  hoodie: 'elvs-hooded-sweat-jacket1',
+  knit: 'mindfront-knitted-sweater-01',
+  jacket: 'mindfront-lusekofta',
+  coat: 'punkduck-winter-coat',
+  pants: 'elvs-male-trouser',
+  wide: 'toigo-harem-pants',
+  shorts: 'elvs-male-trouser-short-1',
+  skirt: 'elvs-gored-midi-skirt',
+  pleated: 'elvs-pleated-plaid-mini-skirt',
+  dress: 'toigo-shift-dress',
+  shirtdress: 'elvs-simple-60s-dress',
+  maxi: 'toigo-halter-dress-midi',
+  sneakers: 'culturalibre-sneakers',
+  loafers: 'elvs-flatshoe-plain1',
+  boots: 'toigo-ankle-boots-female',
+  sandals: 'elvs-caesar-sandals1',
+  bucket: 'mindfront-fishing-hat-01',
+  cap: 'mindfront-patrol-cap',
+  beanie: 'elvs-slouchy-beanie1',
+  straw: 'fedora01',
+};
+
+/* Fitted 3D garments built from MakeHuman assets (tools/fitting-room). */
+type Catalog3dItem = { id: string; name: string; slot: string; kind: string; author: string; license: string; thumb: string };
+const items3d = (catalog3d as { items: Catalog3dItem[] }).items;
+const built3d = new Set(items3d.map((i) => i.id));
+
+/** Plain underwear shown when no top or bottom is worn, so the mannequin is never bare. */
+export const baseLayers3d = {
+  top: items3d.find((i) => i.slot === 'base-top')?.id,
+  bottom: items3d.find((i) => i.slot === 'base-bottom')?.id,
+};
+
+const SLOTS: Slot[] = ['top', 'outer', 'bottom', 'dress', 'shoes', 'hat'];
+const SAMPLE_PRICE: Record<Slot, number> = { top: 690, outer: 1590, bottom: 990, dress: 1490, shoes: 1290, hat: 390 };
+
+/** Sample pieces for trying out the fitting room, made from the 3D assets themselves. */
+const samples: Product[] = items3d
+  .filter((i) => (SLOTS as string[]).includes(i.slot))
+  .map((i, n) => {
+    const slot = i.slot as Slot;
+    return {
+      id: `s-${i.id}`,
+      name: i.name,
+      category: i.kind as Category,
+      slot,
+      price: SAMPLE_PRICE[slot] + (n % 5) * 100,
+      sizes: slot === 'shoes' ? SHOE_SIZES : slot === 'hat' ? ONE_SIZE : ['S', 'M', 'L', 'XL'],
+      model: i.id,
+      image: i.thumb || undefined,
+      credit: { author: i.author, license: i.license },
+      sample: true,
+    };
+  });
+
+export const products: Product[] = [
+  ...ownProducts.map((p) => {
+    const model = MODEL_FOR[p.garment];
+    return { ...p, slot: garmentSlot[p.garment], model: model && built3d.has(model) ? model : undefined };
+  }),
+  ...samples,
 ];
 
 export const reviews: Review[] = [

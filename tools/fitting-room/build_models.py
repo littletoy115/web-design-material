@@ -1,0 +1,251 @@
+"""
+Build the fitting-room 3D models with Blender + MPFB2 (MakeHuman).
+
+For each body (female, male) this creates a posed MakeHuman character, exports
+the bare body, then fits every garment in catalog.json to that body and exports
+each garment as its own GLB (Draco mesh, WebP textures). The web viewer loads
+the body plus only the garments being worn.
+
+Usage (Blender 4.2+ with the MPFB extension installed):
+  blender -b --python tools/fitting-room/build_models.py -- \
+      --packs <dir with MakeHuman asset pack zips> \
+      --out apps/web/public/models [--only id1,id2] [--max-tex 1024]
+
+Then run postprocess.py to make thumbnails and the web catalogue.
+"""
+import argparse
+import glob
+import json
+import os
+import re
+import shutil
+import sys
+import time
+import traceback
+import zipfile
+
+import bpy
+from mathutils import Matrix, Vector
+from bl_ext.user_default.mpfb.services import AssetService, HumanService, LocationService, TargetService
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+# Body shapes. MakeHuman macros run 0..1; gender 0 = female, 1 = male.
+BODIES = {
+    "female": {"gender": 0.0, "age": 0.5, "muscle": 0.5, "weight": 0.45, "height": 0.55,
+               "proportions": 0.8, "cupsize": 0.5, "firmness": 0.55},
+    "male": {"gender": 1.0, "age": 0.5, "muscle": 0.62, "weight": 0.5, "height": 0.6,
+             "proportions": 0.75, "cupsize": 0.5, "firmness": 0.5},
+}
+# Arms relaxed at the sides instead of MakeHuman's T-pose: direction of each bone in armature space.
+ARM_POSE = {
+    "female": {"upperarm01": (0.22, 0.02, -1.0), "lowerarm01": (0.12, -0.12, -1.0)},
+    "male": {"upperarm01": (0.26, 0.0, -1.0), "lowerarm01": (0.14, -0.1, -1.0)},
+}
+
+
+def parse_args():
+    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    p = argparse.ArgumentParser()
+    p.add_argument("--packs", required=True)
+    p.add_argument("--out", required=True)
+    p.add_argument("--catalog", default=os.path.join(HERE, "catalog.json"))
+    p.add_argument("--only", default="")
+    p.add_argument("--max-tex", type=int, default=1024)
+    return p.parse_args(argv)
+
+
+def slug(s):
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+
+
+# Asset folder -> pack name, filled while installing; used when a garment file names no licence.
+ASSET_PACK = {}
+
+
+def pack_license(pack):
+    """Licence a pack is published under (makehumancommunity.org asset packs page)."""
+    return "CC0" if pack == "makehuman_system_assets" or pack.endswith("01") else "CC-BY"
+
+
+def install_packs(packs_dir):
+    data_dir = LocationService.get_user_data()
+    for z in sorted(glob.glob(os.path.join(packs_dir, "*.zip"))):
+        name = os.path.splitext(os.path.basename(z))[0]
+        if name.startswith("mpfb"):
+            continue
+        with zipfile.ZipFile(z) as zf:
+            for n in zf.namelist():
+                parts = n.split("/")
+                if len(parts) > 2 and parts[0] == "clothes":
+                    ASSET_PACK.setdefault(parts[1], name)
+            marker = os.path.join(data_dir, f".installed_{name}")
+            if not os.path.exists(marker):
+                zf.extractall(data_dir)
+                open(marker, "w").close()
+                print("installed pack", name)
+    AssetService.update_all_asset_lists()
+    return data_dir
+
+
+def find_mhclo(data_dir, asset):
+    hits = glob.glob(os.path.join(data_dir, "clothes", asset, "*.mhclo"))
+    return hits[0] if hits else None
+
+
+def normalize_license(raw, pack):
+    """Tidy the free-text licence line; fall back to the pack's licence when it is missing or outdated."""
+    s = raw.strip()
+    if not s or s.upper().startswith("AGPL"):  # old MakeHuman 1.0 headers; the packs are re-released as CC0/CC-BY
+        return pack_license(pack)
+    m = re.match(r"(?i)cc[\s_-]*(by|0|zero)\W*(\d\.\d)?", s)
+    if not m:
+        return s
+    if m.group(1).lower() in ("0", "zero"):
+        return "CC0"
+    return f"CC-BY {m.group(2)}" if m.group(2) else "CC-BY"
+
+
+def read_credits(mhclo, asset):
+    meta = {"author": "", "license": ""}
+    with open(mhclo, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            # both "# author: name" and "# author name" appear in the wild
+            m = re.match(r"#\s*(author|license)\b\s*:?\s*(.+)", line.strip(), re.I)
+            if m:
+                meta[m.group(1).lower()] = m.group(2).strip()
+            if line.startswith("basemesh"):
+                break
+    pack = ASSET_PACK.get(asset, "")
+    meta["license"] = normalize_license(meta["license"], pack)
+    if meta["author"].lower() in ("", "unknown"):
+        meta["author"] = "MakeHuman team" if pack == "makehuman_system_assets" else author_from_folder(asset)
+    return meta
+
+
+# Community asset folders start with the author's handle.
+HANDLES = {"elvs": "Elvaerwyn", "toigo": "Toigo", "punkduck": "punkduck", "mindfront": "Mindfront", "cortu": "Cortu",
+           "jujube": "Jujube", "culturalibre": "culturalibre", "aethelraed": "AEthelraed_Unraed", "ews": "EWS",
+           "janexx": "Janexx", "wolgade": "wolgade", "namuhekam": "Namuhekam", "joepal": "Joepal"}
+
+
+def author_from_folder(asset):
+    handle = asset.split("_", 1)[0].lower()
+    return HANDLES.get(handle, handle)
+
+
+def aim_bone(rig, name, direction):
+    """Rotate a pose bone about its head so it points along `direction` (armature space)."""
+    pb = rig.pose.bones[name]
+    bpy.context.view_layer.update()
+    head = pb.head.copy()
+    q = (pb.tail - pb.head).normalized().rotation_difference(Vector(direction).normalized())
+    pb.matrix = Matrix.Translation(head) @ q.to_matrix().to_4x4() @ Matrix.Translation(-head) @ pb.matrix
+    bpy.context.view_layer.update()
+
+
+def make_body(gender):
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    macros = TargetService.get_default_macro_info_dict()
+    macros.update(BODIES[gender])
+    basemesh = HumanService.create_human(macro_detail_dict=macros, feet_on_ground=True, scale=0.1)
+    rig = HumanService.add_builtin_rig(basemesh, "default", import_weights=True)
+    for side in ("L", "R"):
+        sign = 1 if rig.pose.bones[f"upperarm01.{side}"].head.x > 0 else -1
+        for bone, (x, y, z) in ARM_POSE[gender].items():
+            aim_bone(rig, f"{bone}.{side}", (sign * x, y, z))
+    return basemesh, rig
+
+
+def shrink_textures(obj, max_px):
+    for slot in obj.material_slots:
+        mat = slot.material
+        if not mat or not mat.use_nodes:
+            continue
+        for node in mat.node_tree.nodes:
+            img = getattr(node, "image", None)
+            if node.type == "TEX_IMAGE" and img and max(img.size) > max_px:
+                k = max_px / max(img.size)
+                img.scale(max(1, int(img.size[0] * k)), max(1, int(img.size[1] * k)))
+
+
+def export_glb(obj, path, *, materials=True):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.export_scene.gltf(
+        filepath=path, use_selection=True, export_format="GLB", export_apply=True,
+        export_skins=False, export_animations=False, export_morph=False, export_yup=True,
+        export_materials="EXPORT" if materials else "NONE", export_texcoords=materials,
+        export_image_format="WEBP", export_image_quality=80,
+        export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
+        export_draco_position_quantization=14, export_draco_normal_quantization=10,
+        export_draco_texcoord_quantization=12,
+    )
+
+
+def main():
+    args = parse_args()
+    out = os.path.abspath(args.out)
+    catalog = json.load(open(args.catalog, encoding="utf-8"))["items"]
+    only = {s.strip() for s in args.only.split(",") if s.strip()}
+    data_dir = install_packs(args.packs)
+
+    manifest_path = os.path.join(out, "manifest.json")
+    manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {"bodies": {}, "items": {}}
+    thumbs_src = os.path.join(out, "_thumbs_src")
+    os.makedirs(thumbs_src, exist_ok=True)
+
+    for gender in BODIES:
+        t0 = time.time()
+        basemesh, rig = make_body(gender)
+
+        # Bare body, pulled 4 mm inward so tight garments never show skin poking through.
+        disp = basemesh.modifiers.new("inset", "DISPLACE")
+        disp.strength = -0.004
+        disp.mid_level = 0.0
+        body_file = f"{gender}/body.glb"
+        export_glb(basemesh, os.path.join(out, body_file), materials=False)
+        basemesh.modifiers.remove(disp)
+        manifest["bodies"][gender] = {"file": body_file, "height": round(basemesh.dimensions.z, 3)}
+        print(f"[{gender}] body exported")
+
+        for item in catalog:
+            iid = slug(item["asset"])
+            if only and iid not in only and item["asset"] not in only:
+                continue
+            mhclo = find_mhclo(data_dir, item["asset"])
+            entry = manifest["items"].setdefault(iid, {})
+            entry.update({k: item[k] for k in ("asset", "name", "slot", "kind")})
+            if not mhclo:
+                entry["error"] = "asset not installed"
+                print(f"  ! {iid}: not installed")
+                continue
+            entry.update(read_credits(mhclo, item["asset"]))
+            try:
+                clothes = HumanService.add_mhclo_asset(
+                    mhclo, basemesh, asset_type="Clothes", subdiv_levels=0, material_type="GAMEENGINE")
+                shrink_textures(clothes, args.max_tex)
+                rel = f"{gender}/{iid}.glb"
+                export_glb(clothes, os.path.join(out, rel))
+                entry.setdefault("files", {})[gender] = rel
+                entry.pop("error", None)
+                HumanService.unload_mhclo_asset(basemesh, clothes)
+                bpy.data.orphans_purge(do_recursive=True)
+                thumb = glob.glob(os.path.join(os.path.dirname(mhclo), "*.thumb"))
+                if thumb and gender == "female":
+                    shutil.copyfile(thumb[0], os.path.join(thumbs_src, f"{iid}.png"))
+                print(f"  ok {gender}/{iid}")
+            except Exception as e:  # keep going; one bad asset shouldn't stop the batch
+                entry["error"] = f"{type(e).__name__}: {e}"
+                traceback.print_exc()
+                print(f"  ! {iid}: {e}")
+        print(f"[{gender}] done in {time.time() - t0:.0f}s")
+
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=1, ensure_ascii=False)
+    print("manifest:", manifest_path)
+
+
+main()

@@ -1,10 +1,10 @@
 import { lazy, Suspense, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { cn } from '../cn';
-import { fabricById, formatPrice, garmentSlot as slotOf, productById, products, type Product, type Slot } from '../data';
-import { GarmentArt } from '../components/FabricArt';
+import { baseLayers3d, fabricById, formatPrice, productById, products, type Product, type Slot } from '../data';
+import ProductImage from '../components/ProductImage';
 import { builds, genders, skinTones, type Build, type Gender } from '../three/body';
-import type { WornItem } from '../three/Garments';
+import type { FitItem } from '../three/fitItem';
 import { usePageTitle } from '../usePageTitle';
 
 // three.js is large; only download it when someone opens the fitting room.
@@ -12,11 +12,14 @@ const Fitting3D = lazy(() => import('../three/Fitting3D'));
 
 type Outfit = Partial<Record<Slot, string>>;
 
+// The realistic MakeHuman models are built (tools/fitting-room); only pieces with a fitted 3D model are listed then.
+const REALISTIC = products.some((p) => p.model);
+
 const sections: { slot: Slot; label: string; note?: string }[] = [
   { slot: 'top', label: 'Tops' },
   { slot: 'outer', label: 'Outerwear' },
   { slot: 'bottom', label: 'Pants & skirts' },
-  { slot: 'dress', label: 'Dresses', note: 'Putting on a dress takes off the top and bottom.' },
+  { slot: 'dress', label: 'Dresses & sets', note: 'A dress or set takes off the top and bottom.' },
   { slot: 'shoes', label: 'Shoes' },
   { slot: 'hat', label: 'Hats' },
 ];
@@ -26,7 +29,7 @@ const layerOrder: Slot[] = ['shoes', 'bottom', 'top', 'dress', 'outer', 'hat'];
 const LETTER_SIZES = ['S', 'M', 'L', 'XL'];
 
 function wear(outfit: Outfit, product: Product): Outfit {
-  const slot = slotOf[product.garment];
+  const slot = product.slot;
   if (outfit[slot] === product.id) {
     const next = { ...outfit };
     delete next[slot];
@@ -79,6 +82,42 @@ function Choice({
   );
 }
 
+/** Attribution for the third-party 3D assets (required by CC-BY). */
+function ModelCredits() {
+  const byLicense = new Map<string, Set<string>>();
+  for (const p of products) {
+    if (!p.credit) continue;
+    const lic = p.credit.license || 'CC0';
+    if (!byLicense.has(lic)) byLicense.set(lic, new Set());
+    if (p.credit.author) byLicense.get(lic)!.add(p.credit.author);
+  }
+  return (
+    <section aria-labelledby="credits-heading" className="border-t border-faded/50 pt-6 text-sm text-ink/60">
+      <h2 id="credits-heading" className="font-medium text-ink">
+        3D model credits
+      </h2>
+      <p className="mt-2 text-pretty">
+        Mannequins and sample garments are built with{' '}
+        <a href="https://static.makehumancommunity.org/" target="_blank" rel="noreferrer" className="text-hom hover:underline">
+          MakeHuman
+        </a>{' '}
+        and assets from the{' '}
+        <a href="https://static.makehumancommunity.org/assets/assetpacks/index.html" target="_blank" rel="noreferrer" className="text-hom hover:underline">
+          MakeHuman community asset packs
+        </a>
+        .
+      </p>
+      <ul className="mt-2 space-y-1">
+        {[...byLicense].map(([lic, authors]) => (
+          <li key={lic} className="text-pretty">
+            <span className="font-medium text-ink/80">{lic}:</span> {authors.size ? [...authors].sort().join(', ') : 'MakeHuman team'}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function sizeNote(p: Product, suggested: string) {
   if (!p.sizes.every((s) => LETTER_SIZES.includes(s))) {
     return { ok: true, text: p.sizes.length === 1 ? p.sizes[0] : `Sizes ${p.sizes[0]}–${p.sizes[p.sizes.length - 1]}` };
@@ -97,9 +136,9 @@ export default function FittingPage() {
   const [outfit, setOutfit] = useState<Outfit>(() => initialOutfit(params.get('item')));
 
   const worn = layerOrder.filter((s) => outfit[s]).map((s) => productById(outfit[s]!));
-  const layers: WornItem[] = worn.map((p) => {
-    const f = fabricById(p.fabricId);
-    return { garment: p.garment, weave: f.weave, colors: f.colors };
+  const items: FitItem[] = worn.map((p) => {
+    const f = p.fabricId ? fabricById(p.fabricId) : undefined;
+    return { id: p.id, name: p.name, slot: p.slot, model: p.model, garment: p.garment, fabric: f && { weave: f.weave, colors: f.colors } };
   });
   const total = worn.reduce((sum, p) => sum + p.price, 0);
   const suggestedSize = builds.find((b) => b.id === build)!.size;
@@ -121,7 +160,7 @@ export default function FittingPage() {
                 <div className="flex aspect-[3/4] w-full items-center justify-center text-sm text-ink/55">Loading 3D model</div>
               }
             >
-              <Fitting3D gender={gender} skin={skin} build={build} layers={layers} label={label} />
+              <Fitting3D gender={gender} skin={skin} build={build} items={items} label={label} realistic={REALISTIC} baseLayers={baseLayers3d} />
             </Suspense>
           </div>
 
@@ -226,9 +265,8 @@ export default function FittingPage() {
               {note && <p className="mt-1 text-sm text-ink/60">{note}</p>}
               <div className="mt-3 grid grid-cols-3 gap-3 lg:grid-cols-4">
                 {products
-                  .filter((p) => slotOf[p.garment] === slot)
+                  .filter((p) => p.slot === slot && (!REALISTIC || p.model))
                   .map((p) => {
-                    const f = fabricById(p.fabricId);
                     const active = outfit[slot] === p.id;
                     return (
                       <Choice
@@ -238,7 +276,7 @@ export default function FittingPage() {
                         label={`${active ? 'Remove' : 'Wear'} ${p.name}`}
                         className="bg-white p-2 text-left"
                       >
-                        <GarmentArt garment={p.garment} weave={f.weave} colors={f.colors} label="" className="aspect-[5/6] w-full" />
+                        <ProductImage product={p} label="" className="aspect-[5/6] w-full" />
                         <span className="mt-1 block truncate text-xs">{p.name}</span>
                         <span className="block text-xs text-ink/55 tabular-nums">{formatPrice(p.price)}</span>
                       </Choice>
@@ -254,6 +292,8 @@ export default function FittingPage() {
               the shop
             </Link>
           </p>
+
+          {REALISTIC && <ModelCredits />}
         </div>
       </div>
     </div>

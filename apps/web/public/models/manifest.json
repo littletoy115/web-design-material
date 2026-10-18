@@ -1,0 +1,1046 @@
+{
+ "bodies": {
+  "female": {
+   "file": "female/body.glb",
+   "height": 1.695
+  },
+  "male": {
+   "file": "male/body.glb",
+   "height": 1.695
+  }
+ },
+ "items": {
+  "elvs-crude-t-shirt-male": {
+   "asset": "elvs_crude_t-shirt_male",
+   "name": "Classic Crew Tee",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "Makehuman edited by Elvaerwyn",
+   "license": "CC0",
+   "files": {
+    "female": "female/elvs-crude-t-shirt-male.glb",
+    "male": "male/elvs-crude-t-shirt-male.glb"
+   }
+  },
+  "toigo-basic-tucked-t-shirt": {
+   "asset": "toigo_basic_tucked_t-shirt",
+   "name": "Fitted Tee",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-basic-tucked-t-shirt.glb",
+    "male": "male/toigo-basic-tucked-t-shirt.glb"
+   }
+  },
+  "elvs-male-logo-tshirt1": {
+   "asset": "elvs_male_logo_tshirt1",
+   "name": "Logo Tee",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "Elvaerwyn",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/elvs-male-logo-tshirt1.glb",
+    "male": "male/elvs-male-logo-tshirt1.glb"
+   }
+  },
+  "namuhekam-male-polo-shirt": {
+   "asset": "namuhekam_male_polo_shirt",
+   "name": "Polo Shirt",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "Namuhekam",
+   "license": "CC0",
+   "files": {
+    "female": "female/namuhekam-male-polo-shirt.glb",
+    "male": "male/namuhekam-male-polo-shirt.glb"
+   }
+  },
+  "elvs-male-shirt-untucked-bd1": {
+   "asset": "elvs_male_shirt_untucked_bd1",
+   "name": "Button-Down Shirt",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-male-shirt-untucked-bd1.glb",
+    "male": "male/elvs-male-shirt-untucked-bd1.glb"
+   }
+  },
+  "ews-striped-shirt": {
+   "asset": "ews_striped_shirt",
+   "name": "Striped Crop Shirt",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "EWS",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/ews-striped-shirt.glb",
+    "male": "male/ews-striped-shirt.glb"
+   }
+  },
+  "punkduck-off-shoulder-long-sleeve-top": {
+   "asset": "punkduck_off-shoulder_long-sleeve_top",
+   "name": "Off-Shoulder Top",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-off-shoulder-long-sleeve-top.glb",
+    "male": "male/punkduck-off-shoulder-long-sleeve-top.glb"
+   }
+  },
+  "punkduck-v-neck-top": {
+   "asset": "punkduck_v_neck_top",
+   "name": "V-Neck Top",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-v-neck-top.glb",
+    "male": "male/punkduck-v-neck-top.glb"
+   }
+  },
+  "mindfront-tank-top-01": {
+   "asset": "mindfront_tank_top_01",
+   "name": "Sport Tank",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-tank-top-01.glb",
+    "male": "male/mindfront-tank-top-01.glb"
+   }
+  },
+  "punkduck-spaghetti-strap-tank-top": {
+   "asset": "punkduck_spaghetti_strap_tank_top",
+   "name": "Strappy Tank",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-spaghetti-strap-tank-top.glb",
+    "male": "male/punkduck-spaghetti-strap-tank-top.glb"
+   }
+  },
+  "elvs-ruffle-sleeve-peasant-blouse-1": {
+   "asset": "elvs_ruffle_sleeve_peasant_blouse_1",
+   "name": "Peasant Blouse",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-ruffle-sleeve-peasant-blouse-1.glb",
+    "male": "male/elvs-ruffle-sleeve-peasant-blouse-1.glb"
+   }
+  },
+  "punkduck-lace-up-blouse": {
+   "asset": "punkduck_lace_up_blouse",
+   "name": "Lace-Up Blouse",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "punkduck",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/punkduck-lace-up-blouse.glb",
+    "male": "male/punkduck-lace-up-blouse.glb"
+   }
+  },
+  "elvs-male-boho-top1": {
+   "asset": "elvs_male_boho_top1",
+   "name": "Boho Shirt",
+   "slot": "top",
+   "kind": "Tops",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-male-boho-top1.glb",
+    "male": "male/elvs-male-boho-top1.glb"
+   }
+  },
+  "elvs-hooded-sweat-jacket1": {
+   "asset": "elvs_hooded_sweat_jacket1",
+   "name": "Zip Hoodie",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-hooded-sweat-jacket1.glb",
+    "male": "male/elvs-hooded-sweat-jacket1.glb"
+   }
+  },
+  "mindfront-cardigan-long-open-front": {
+   "asset": "mindfront_cardigan_long_open_front",
+   "name": "Long Open Cardigan",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-cardigan-long-open-front.glb",
+    "male": "male/mindfront-cardigan-long-open-front.glb"
+   }
+  },
+  "mindfront-lusekofta": {
+   "asset": "mindfront_lusekofta",
+   "name": "Nordic Cardigan",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-lusekofta.glb",
+    "male": "male/mindfront-lusekofta.glb"
+   }
+  },
+  "punkduck-winter-coat": {
+   "asset": "punkduck_winter_coat",
+   "name": "Winter Coat",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-winter-coat.glb",
+    "male": "male/punkduck-winter-coat.glb"
+   }
+  },
+  "mindfront-kimono": {
+   "asset": "mindfront_kimono",
+   "name": "Kimono Robe",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "Mindfront (Sweden)",
+   "license": "CC0",
+   "files": {
+    "female": "female/mindfront-kimono.glb",
+    "male": "male/mindfront-kimono.glb"
+   }
+  },
+  "elvs-sarong-cover-up": {
+   "asset": "elvs_sarong_cover_up",
+   "name": "Sarong Cover-Up",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-sarong-cover-up.glb",
+    "male": "male/elvs-sarong-cover-up.glb"
+   }
+  },
+  "toigo-fisherman-sweater": {
+   "asset": "toigo_fisherman_sweater",
+   "name": "Fisherman Sweater",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-fisherman-sweater.glb",
+    "male": "male/toigo-fisherman-sweater.glb"
+   }
+  },
+  "mindfront-knitted-sweater-01": {
+   "asset": "mindfront_knitted_sweater_01",
+   "name": "Knit Sweater",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-knitted-sweater-01.glb",
+    "male": "male/mindfront-knitted-sweater-01.glb"
+   }
+  },
+  "mindfront-knitted-sweater-02": {
+   "asset": "mindfront_knitted_sweater_02",
+   "name": "Chunky Knit Sweater",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-knitted-sweater-02.glb",
+    "male": "male/mindfront-knitted-sweater-02.glb"
+   }
+  },
+  "janexx-old-female-sweater": {
+   "asset": "janexx_old_female_sweater",
+   "name": "Relaxed Pullover",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "Janexx",
+   "license": "CC0",
+   "files": {
+    "female": "female/janexx-old-female-sweater.glb",
+    "male": "male/janexx-old-female-sweater.glb"
+   }
+  },
+  "elvs-ladies-apron": {
+   "asset": "elvs_ladies_apron",
+   "name": "Work Apron",
+   "slot": "outer",
+   "kind": "Outerwear",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-ladies-apron.glb",
+    "male": "male/elvs-ladies-apron.glb"
+   }
+  },
+  "punkduck-male-classic-jeans": {
+   "asset": "punkduck_male_classic_jeans",
+   "name": "Classic Jeans",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "punkduck",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/punkduck-male-classic-jeans.glb",
+    "male": "male/punkduck-male-classic-jeans.glb"
+   }
+  },
+  "elvs-jeans-straight-leg": {
+   "asset": "elvs_jeans_straight_leg",
+   "name": "Straight-Leg Jeans",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-jeans-straight-leg.glb",
+    "male": "male/elvs-jeans-straight-leg.glb"
+   }
+  },
+  "elvs-jeans-bootcut": {
+   "asset": "elvs_jeans_bootcut",
+   "name": "Bootcut Jeans",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-jeans-bootcut.glb",
+    "male": "male/elvs-jeans-bootcut.glb"
+   }
+  },
+  "punkduck-female-tight-jeans": {
+   "asset": "punkduck_female_tight_jeans",
+   "name": "Skinny Jeans",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-female-tight-jeans.glb",
+    "male": "male/punkduck-female-tight-jeans.glb"
+   }
+  },
+  "mindfront-male-trousers-1": {
+   "asset": "mindfront_male_trousers_1",
+   "name": "Chino Trousers",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-male-trousers-1.glb",
+    "male": "male/mindfront-male-trousers-1.glb"
+   }
+  },
+  "elvs-male-trouser": {
+   "asset": "elvs_male_trouser",
+   "name": "Tailored Trousers",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-male-trouser.glb",
+    "male": "male/elvs-male-trouser.glb"
+   }
+  },
+  "toigo-wool-pants": {
+   "asset": "toigo_wool_pants",
+   "name": "Wool Pants",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-wool-pants.glb",
+    "male": "male/toigo-wool-pants.glb"
+   }
+  },
+  "cortu-cargo-pants": {
+   "asset": "cortu_cargo_pants",
+   "name": "Cargo Pants",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "Cortu",
+   "license": "CC0",
+   "files": {
+    "female": "female/cortu-cargo-pants.glb",
+    "male": "male/cortu-cargo-pants.glb"
+   }
+  },
+  "toigo-harem-pants": {
+   "asset": "toigo_harem_pants",
+   "name": "Harem Pants",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-harem-pants.glb",
+    "male": "male/toigo-harem-pants.glb"
+   }
+  },
+  "elvs-male-trouser-short-1": {
+   "asset": "elvs_male_trouser_short_1",
+   "name": "Bermuda Shorts",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-male-trouser-short-1.glb",
+    "male": "male/elvs-male-trouser-short-1.glb"
+   }
+  },
+  "punkduck-female-short-jeans": {
+   "asset": "punkduck_female_short_jeans",
+   "name": "Denim Shorts",
+   "slot": "bottom",
+   "kind": "Pants",
+   "author": "punkduck",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/punkduck-female-short-jeans.glb",
+    "male": "male/punkduck-female-short-jeans.glb"
+   }
+  },
+  "elvs-pencil-skirt": {
+   "asset": "elvs_pencil_skirt",
+   "name": "Pencil Skirt",
+   "slot": "bottom",
+   "kind": "Skirts",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-pencil-skirt.glb",
+    "male": "male/elvs-pencil-skirt.glb"
+   }
+  },
+  "elvs-pleated-plaid-mini-skirt": {
+   "asset": "elvs_pleated_plaid_mini_skirt",
+   "name": "Pleated Plaid Mini",
+   "slot": "bottom",
+   "kind": "Skirts",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-pleated-plaid-mini-skirt.glb",
+    "male": "male/elvs-pleated-plaid-mini-skirt.glb"
+   }
+  },
+  "toigo-long-full-skirt": {
+   "asset": "toigo_long_full_skirt",
+   "name": "Long Full Skirt",
+   "slot": "bottom",
+   "kind": "Skirts",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-long-full-skirt.glb",
+    "male": "male/toigo-long-full-skirt.glb"
+   }
+  },
+  "punkduck-jeans-skirt": {
+   "asset": "punkduck_jeans_skirt",
+   "name": "Denim Skirt",
+   "slot": "bottom",
+   "kind": "Skirts",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-jeans-skirt.glb",
+    "male": "male/punkduck-jeans-skirt.glb"
+   }
+  },
+  "elvs-gored-midi-skirt": {
+   "asset": "elvs_gored_midi_skirt",
+   "name": "Gored Midi Skirt",
+   "slot": "bottom",
+   "kind": "Skirts",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-gored-midi-skirt.glb",
+    "male": "male/elvs-gored-midi-skirt.glb"
+   }
+  },
+  "toigo-shift-dress": {
+   "asset": "toigo_shift_dress",
+   "name": "Shift Dress",
+   "slot": "dress",
+   "kind": "Dresses",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-shift-dress.glb",
+    "male": "male/toigo-shift-dress.glb"
+   }
+  },
+  "toigo-halter-dress-midi": {
+   "asset": "toigo_halter_dress_midi",
+   "name": "Halter Midi Dress",
+   "slot": "dress",
+   "kind": "Dresses",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-halter-dress-midi.glb",
+    "male": "male/toigo-halter-dress-midi.glb"
+   }
+  },
+  "toigo-keyhole-neck-dress": {
+   "asset": "toigo_keyhole_neck_dress",
+   "name": "Keyhole Dress",
+   "slot": "dress",
+   "kind": "Dresses",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-keyhole-neck-dress.glb",
+    "male": "male/toigo-keyhole-neck-dress.glb"
+   }
+  },
+  "elvs-simple-60s-dress": {
+   "asset": "elvs_simple_60s_dress",
+   "name": "Sixties Dress",
+   "slot": "dress",
+   "kind": "Dresses",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-simple-60s-dress.glb",
+    "male": "male/elvs-simple-60s-dress.glb"
+   }
+  },
+  "elvs-fashion-stylized-qipoa": {
+   "asset": "elvs_fashion_stylized_qipoa",
+   "name": "Modern Qipao",
+   "slot": "dress",
+   "kind": "Dresses",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-fashion-stylized-qipoa.glb",
+    "male": "male/elvs-fashion-stylized-qipoa.glb"
+   }
+  },
+  "punkduck-black-cocktail-dress": {
+   "asset": "punkduck_black_cocktail_dress",
+   "name": "Cocktail Dress",
+   "slot": "dress",
+   "kind": "Dresses",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-black-cocktail-dress.glb",
+    "male": "male/punkduck-black-cocktail-dress.glb"
+   }
+  },
+  "punkduck-tube-dress": {
+   "asset": "punkduck_tube_dress",
+   "name": "Tube Dress",
+   "slot": "dress",
+   "kind": "Dresses",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-tube-dress.glb",
+    "male": "male/punkduck-tube-dress.glb"
+   }
+  },
+  "elvs-frilled-party-dress": {
+   "asset": "elvs_frilled_party_dress",
+   "name": "Frilled Party Dress",
+   "slot": "dress",
+   "kind": "Dresses",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-frilled-party-dress.glb",
+    "male": "male/elvs-frilled-party-dress.glb"
+   }
+  },
+  "mindfront-f-dress-02": {
+   "asset": "mindfront_f_dress_02",
+   "name": "Day Dress",
+   "slot": "dress",
+   "kind": "Dresses",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-f-dress-02.glb",
+    "male": "male/mindfront-f-dress-02.glb"
+   }
+  },
+  "male-casualsuit01": {
+   "asset": "male_casualsuit01",
+   "name": "Casual Set (Men)",
+   "slot": "dress",
+   "kind": "Sets",
+   "author": "MakeHuman team",
+   "license": "CC0",
+   "files": {
+    "female": "female/male-casualsuit01.glb",
+    "male": "male/male-casualsuit01.glb"
+   }
+  },
+  "female-casualsuit01": {
+   "asset": "female_casualsuit01",
+   "name": "Casual Set (Women)",
+   "slot": "dress",
+   "kind": "Sets",
+   "author": "MakeHuman team",
+   "license": "CC0",
+   "files": {
+    "female": "female/female-casualsuit01.glb",
+    "male": "male/female-casualsuit01.glb"
+   }
+  },
+  "male-elegantsuit01": {
+   "asset": "male_elegantsuit01",
+   "name": "Business Suit",
+   "slot": "dress",
+   "kind": "Sets",
+   "author": "MakeHuman team",
+   "license": "CC0",
+   "files": {
+    "female": "female/male-elegantsuit01.glb",
+    "male": "male/male-elegantsuit01.glb"
+   }
+  },
+  "female-sportsuit01": {
+   "asset": "female_sportsuit01",
+   "name": "Track Suit",
+   "slot": "dress",
+   "kind": "Sets",
+   "author": "MakeHuman team",
+   "license": "CC0",
+   "files": {
+    "female": "female/female-sportsuit01.glb",
+    "male": "male/female-sportsuit01.glb"
+   }
+  },
+  "male-worksuit01": {
+   "asset": "male_worksuit01",
+   "name": "Work Overalls",
+   "slot": "dress",
+   "kind": "Sets",
+   "author": "MakeHuman team",
+   "license": "CC0",
+   "files": {
+    "female": "female/male-worksuit01.glb",
+    "male": "male/male-worksuit01.glb"
+   }
+  },
+  "toigo-male-suit-tie-and-jacket": {
+   "asset": "toigo_male_suit_tie_and_jacket",
+   "name": "Suit and Tie",
+   "slot": "dress",
+   "kind": "Sets",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-male-suit-tie-and-jacket.glb",
+    "male": "male/toigo-male-suit-tie-and-jacket.glb"
+   }
+  },
+  "toigo-male-double-breasted-suit": {
+   "asset": "toigo_male_double-breasted_suit",
+   "name": "Double-Breasted Suit",
+   "slot": "dress",
+   "kind": "Sets",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-male-double-breasted-suit.glb",
+    "male": "male/toigo-male-double-breasted-suit.glb"
+   }
+  },
+  "toigo-female-suit": {
+   "asset": "toigo_female_suit",
+   "name": "Women's Suit",
+   "slot": "dress",
+   "kind": "Sets",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-female-suit.glb",
+    "male": "male/toigo-female-suit.glb"
+   }
+  },
+  "toigo-suit-with-dinner-jacket": {
+   "asset": "toigo_suit_with_dinner_jacket",
+   "name": "Dinner Jacket Suit",
+   "slot": "dress",
+   "kind": "Sets",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-suit-with-dinner-jacket.glb",
+    "male": "male/toigo-suit-with-dinner-jacket.glb"
+   }
+  },
+  "punkduck-running-shoes-01": {
+   "asset": "punkduck_running_shoes_01",
+   "name": "Running Shoes",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-running-shoes-01.glb",
+    "male": "male/punkduck-running-shoes-01.glb"
+   }
+  },
+  "culturalibre-sneakers": {
+   "asset": "culturalibre_sneakers",
+   "name": "Canvas Sneakers",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "culturalibre",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/culturalibre-sneakers.glb",
+    "male": "male/culturalibre-sneakers.glb"
+   }
+  },
+  "punkduck-comfortable-sneakers": {
+   "asset": "punkduck_comfortable_sneakers",
+   "name": "Comfort Sneakers",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-comfortable-sneakers.glb",
+    "male": "male/punkduck-comfortable-sneakers.glb"
+   }
+  },
+  "punkduck-tennis-shoes": {
+   "asset": "punkduck_tennis_shoes",
+   "name": "Tennis Shoes",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-tennis-shoes.glb",
+    "male": "male/punkduck-tennis-shoes.glb"
+   }
+  },
+  "mindfront-shoes-oxford-male": {
+   "asset": "mindfront_shoes_oxford_male",
+   "name": "Oxford Shoes",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-shoes-oxford-male.glb",
+    "male": "male/mindfront-shoes-oxford-male.glb"
+   }
+  },
+  "mindfront-shoes-oxford-female": {
+   "asset": "mindfront_shoes_oxford_female",
+   "name": "Heeled Oxfords",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-shoes-oxford-female.glb",
+    "male": "male/mindfront-shoes-oxford-female.glb"
+   }
+  },
+  "mindfront-shoes-monk-strap-male": {
+   "asset": "mindfront_shoes_monk_strap_male",
+   "name": "Monk Straps",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-shoes-monk-strap-male.glb",
+    "male": "male/mindfront-shoes-monk-strap-male.glb"
+   }
+  },
+  "elvs-flatshoe-plain1": {
+   "asset": "elvs_flatshoe_plain1",
+   "name": "Ballet Flats",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-flatshoe-plain1.glb",
+    "male": "male/elvs-flatshoe-plain1.glb"
+   }
+  },
+  "elvs-caesar-sandals1": {
+   "asset": "elvs_caesar_sandals1",
+   "name": "Strappy Sandals",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-caesar-sandals1.glb",
+    "male": "male/elvs-caesar-sandals1.glb"
+   }
+  },
+  "elvs-male-flip-flop-sandals1": {
+   "asset": "elvs_male_flip_flop_sandals1",
+   "name": "Flip-Flops",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-male-flip-flop-sandals1.glb",
+    "male": "male/elvs-male-flip-flop-sandals1.glb"
+   }
+  },
+  "toigo-ankle-boots-female": {
+   "asset": "toigo_ankle_boots_female",
+   "name": "Ankle Boots",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "MRT",
+   "license": "CC0",
+   "files": {
+    "female": "female/toigo-ankle-boots-female.glb",
+    "male": "male/toigo-ankle-boots-female.glb"
+   }
+  },
+  "mindfront-shoes-biker-boots-male": {
+   "asset": "mindfront_shoes_biker_boots_male",
+   "name": "Biker Boots",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-shoes-biker-boots-male.glb",
+    "male": "male/mindfront-shoes-biker-boots-male.glb"
+   }
+  },
+  "punkduck-female-knee-boots": {
+   "asset": "punkduck_female_knee_boots",
+   "name": "Knee Boots",
+   "slot": "shoes",
+   "kind": "Shoes",
+   "author": "punkduck",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/punkduck-female-knee-boots.glb",
+    "male": "male/punkduck-female-knee-boots.glb"
+   }
+  },
+  "fedora01": {
+   "asset": "fedora01",
+   "name": "Fedora",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "MakeHuman team",
+   "license": "CC0",
+   "files": {
+    "female": "female/fedora01.glb",
+    "male": "male/fedora01.glb"
+   }
+  },
+  "fedora-cocked": {
+   "asset": "fedora_cocked",
+   "name": "Tilted Fedora",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "MakeHuman team",
+   "license": "CC0",
+   "files": {
+    "female": "female/fedora-cocked.glb",
+    "male": "male/fedora-cocked.glb"
+   }
+  },
+  "elvs-male-trilby-hat": {
+   "asset": "elvs_male_trilby_hat",
+   "name": "Trilby",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-male-trilby-hat.glb",
+    "male": "male/elvs-male-trilby-hat.glb"
+   }
+  },
+  "culturalibre-cl-bowler-hat": {
+   "asset": "culturalibre_cl_bowler_hat",
+   "name": "Bowler Hat",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "culturalibre",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/culturalibre-cl-bowler-hat.glb",
+    "male": "male/culturalibre-cl-bowler-hat.glb"
+   }
+  },
+  "jujube-newsboy-cap": {
+   "asset": "jujube_newsboy_cap",
+   "name": "Newsboy Cap",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "Jujube",
+   "license": "CC0",
+   "files": {
+    "female": "female/jujube-newsboy-cap.glb",
+    "male": "male/jujube-newsboy-cap.glb"
+   }
+  },
+  "elvs-male-flat-cap1": {
+   "asset": "elvs_male_flat_cap1",
+   "name": "Flat Cap",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "Elvaerwyn",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/elvs-male-flat-cap1.glb",
+    "male": "male/elvs-male-flat-cap1.glb"
+   }
+  },
+  "aethelraed-unraed-cloche-hat": {
+   "asset": "aethelraed_unraed_cloche_hat",
+   "name": "Cloche Hat",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "AEthelraed_Unraed",
+   "license": "CC0",
+   "files": {
+    "female": "female/aethelraed-unraed-cloche-hat.glb",
+    "male": "male/aethelraed-unraed-cloche-hat.glb"
+   }
+  },
+  "elvs-slouchy-beanie1": {
+   "asset": "elvs_slouchy_beanie1",
+   "name": "Slouchy Beanie",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-slouchy-beanie1.glb",
+    "male": "male/elvs-slouchy-beanie1.glb"
+   }
+  },
+  "mindfront-knitted-hat-01": {
+   "asset": "mindfront_knitted_hat_01",
+   "name": "Knit Hat",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-knitted-hat-01.glb",
+    "male": "male/mindfront-knitted-hat-01.glb"
+   }
+  },
+  "mindfront-fishing-hat-01": {
+   "asset": "mindfront_fishing_hat_01",
+   "name": "Fishing Hat",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-fishing-hat-01.glb",
+    "male": "male/mindfront-fishing-hat-01.glb"
+   }
+  },
+  "punkduck-sun-visor-sports-visor": {
+   "asset": "punkduck_sun_visor_sports_visor",
+   "name": "Sun Visor",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "punkduck",
+   "license": "CC-BY 3.0",
+   "files": {
+    "female": "female/punkduck-sun-visor-sports-visor.glb",
+    "male": "male/punkduck-sun-visor-sports-visor.glb"
+   }
+  },
+  "mindfront-patrol-cap": {
+   "asset": "mindfront_patrol_cap",
+   "name": "Patrol Cap",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "Mindfront (Sweden)",
+   "license": "CC-BY 4.0",
+   "files": {
+    "female": "female/mindfront-patrol-cap.glb",
+    "male": "male/mindfront-patrol-cap.glb"
+   }
+  },
+  "elvs-tophat1": {
+   "asset": "elvs_tophat1",
+   "name": "Top Hat",
+   "slot": "hat",
+   "kind": "Hats",
+   "author": "Elvaerwyn",
+   "license": "CC-BY",
+   "files": {
+    "female": "female/elvs-tophat1.glb",
+    "male": "male/elvs-tophat1.glb"
+   }
+  },
+  "wolgade-female-top-01": {
+   "asset": "wolgade_female_top_01",
+   "name": "Base Top",
+   "slot": "base-top",
+   "kind": "Base",
+   "author": "wolgade",
+   "license": "CC0",
+   "files": {
+    "female": "female/wolgade-female-top-01.glb",
+    "male": "male/wolgade-female-top-01.glb"
+   }
+  },
+  "wolgade-female-panties-01": {
+   "asset": "wolgade_female_panties_01",
+   "name": "Base Briefs",
+   "slot": "base-bottom",
+   "kind": "Base",
+   "author": "wolgade",
+   "license": "CC0",
+   "files": {
+    "female": "female/wolgade-female-panties-01.glb",
+    "male": "male/wolgade-female-panties-01.glb"
+   }
+  }
+ }
+}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '../cn';
 import { fabricById, productById, reviews } from '../data';
-import { GarmentArt } from '../components/FabricArt';
+import ProductImage from '../components/ProductImage';
 import Stars from '../components/Stars';
 import { usePageTitle } from '../usePageTitle';
 
@@ -71,17 +71,12 @@ export default function ReviewsPage() {
         <ul className="divide-y divide-faded/50 border-y border-faded/50">
           {visible.map((r) => {
             const product = productById(r.productId);
-            const fabric = fabricById(product.fabricId);
+            // reviews are only written for Homfaai pieces, which always have a fabric
+            const fabric = fabricById(product.fabricId!);
             return (
               <li key={r.id} className="grid grid-cols-[4rem_1fr] gap-4 py-8 sm:grid-cols-[5rem_1fr] sm:gap-6">
                 <div className="aspect-[5/6] bg-white">
-                  <GarmentArt
-                    garment={product.garment}
-                    weave={fabric.weave}
-                    colors={fabric.colors}
-                    label={product.name}
-                    className="size-full p-2"
-                  />
+                  <ProductImage product={product} className="size-full p-2" />
                 </div>
                 <article>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
