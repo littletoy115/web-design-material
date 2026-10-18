@@ -72,7 +72,7 @@ const TUCKED_LAYER = 0.5;
 const DEPTH_BIAS = 0.007;
 // metres a garment's covered parts are drawn further from the camera, behind the garment over them
 const COVERED_PUSH = 0.03;
-// skin under any garment goes back further still, behind the pushed-back inner garments
+// skin under two overlapping garments goes back further still, behind the pushed-back inner one
 const SKIN_PUSH = 0.045;
 
 /**
@@ -101,17 +101,17 @@ type Mask = { hide: string; cover: string };
 /** Body vertex id stored on a vertex; Draco hands back floats a hair off the integer. */
 const vidAt = (vid: THREE.BufferAttribute, i: number) => Math.round(vid.getX(i));
 
-/** Expand "12-40,57" lists into a lookup of hidden body vertex ids. */
-function hiddenLookup(ranges: string[], size: number) {
-  const hidden = new Uint8Array(size);
+/** Expand "12-40,57" lists into a lookup of body vertex ids: 1 where at least `min` lists include the id. */
+function hiddenLookup(ranges: string[], size: number, min = 1) {
+  const count = new Uint8Array(size);
   for (const list of ranges) {
     for (const part of list.split(',')) {
       if (!part) continue;
       const [a, b] = part.split('-').map(Number);
-      for (let i = a; i <= (b ?? a) && i < size; i++) hidden[i] = 1;
+      for (let i = a; i <= (b ?? a) && i < size; i++) count[i]++;
     }
   }
-  return hidden;
+  return count.map((c) => (c >= min ? 1 : 0));
 }
 
 /** Meshes masked by body vertex id (_VID: own id on the body, nearest body vertex on a garment). */
@@ -164,7 +164,7 @@ function Body({ gender, skin, hide, cover }: { gender: Gender; skin: string; hid
   const gltf = useGltf(`/models/${gender}/body.glb`);
   const material = useMemo(() => {
     const m = new THREE.MeshPhysicalMaterial({ color: skin, roughness: 0.35, clearcoat: 0.3, clearcoatRoughness: 0.25 });
-    // skin a garment covers but does not hide (near hems) stays behind every garment
+    // skin where two garments overlap (near a hem) stays behind both
     shiftDepth(m, 0, SKIN_PUSH);
     return m;
   }, [skin]);
@@ -177,7 +177,10 @@ function Body({ gender, skin, hide, cover }: { gender: Gender; skin: string; hid
     return { scene, meshes };
   }, [gltf, material]);
   useMask(parts?.meshes ?? null, hide);
-  useCovered(parts?.meshes ?? null, cover);
+  // Only skin under two overlapping garments (a waist under a shirt and trousers) goes back, so it
+  // stays behind the inner one there. Skin under a single garment can be in plain view (a face
+  // under a cap brim, a neck inside a collar) and must keep its depth.
+  useCovered(parts?.meshes ?? null, cover, 2);
   return parts ? <primitive object={parts.scene} /> : null;
 }
 
@@ -188,7 +191,7 @@ function Body({ gender, skin, hide, cover }: { gender: Gender; skin: string; hid
  * hiding those triangles instead leaves holes, because garment triangles are large and straddle
  * the hem.
  */
-function useCovered(meshes: Maskable | null, cover: string[]) {
+function useCovered(meshes: Maskable | null, cover: string[], min = 1) {
   const key = cover.join('|');
   useEffect(() => {
     if (!meshes) return;
@@ -205,12 +208,12 @@ function useCovered(meshes: Maskable | null, cover: string[]) {
       if (vid && cover.length) {
         let max = 0;
         for (let i = 0; i < vid.count; i++) max = Math.max(max, vidAt(vid, i));
-        const hidden = hiddenLookup(cover, max + 1);
-        for (let i = 0; i < n; i++) flags[i] = hidden[vidAt(vid, i)];
+        const hidden = hiddenLookup(cover, max + 1, min);
+        for (let i = 0; i < n; i++) flags[i] = hidden[vidAt(vid, i)] ?? 0;
       }
       attr.needsUpdate = true;
     }
-  }, [meshes, key]);
+  }, [meshes, key, min]);
 }
 
 interface GarmentProps {

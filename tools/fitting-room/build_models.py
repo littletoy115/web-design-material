@@ -185,6 +185,9 @@ def export_glb(obj, path, *, materials=True, draco=True, attributes=False):
         export_draco_mesh_compression_enable=draco, export_draco_mesh_compression_level=6,
         export_draco_position_quantization=14, export_draco_normal_quantization=10,
         export_draco_texcoord_quantization=12,
+        # _VID holds body vertex ids up to ~14k; the default 12 bits rounds them to steps of ~3
+        # and the viewer would hide the wrong skin. 20 bits keeps them exact after rounding.
+        export_draco_generic_quantization=20,
     )
 
 
