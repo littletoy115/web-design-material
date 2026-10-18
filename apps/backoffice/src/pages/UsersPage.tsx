@@ -1,10 +1,29 @@
 import { useEffect, useState } from 'react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  Input,
+  Label,
+  Modal,
+  Select,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  useToast,
+} from '@repo/ui';
 import api from '../services/api';
 import { User } from '@repo/types';
 
 const emptyForm = { name: '', email: '', password: '', role: 'USER' as 'USER' | 'ADMIN' };
 
 export default function UsersPage() {
+  const { success, error: toastError } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -13,7 +32,6 @@ export default function UsersPage() {
   const [editName, setEditName] = useState('');
   const [editRole, setEditRole] = useState<'USER' | 'ADMIN'>('USER');
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
 
   // Add user modal
   const [showAdd, setShowAdd] = useState(false);
@@ -21,49 +39,59 @@ export default function UsersPage() {
   const [addError, setAddError] = useState('');
   const [adding, setAdding] = useState(false);
 
+  // Delete confirmation
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   function loadUsers() {
     setLoading(true);
-    api.get<{ success: boolean; data: User[] }>('/api/users')
+    api
+      .get<{ success: boolean; data: User[] }>('/api/users')
       .then(({ data }) => setUsers(data.data ?? []))
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => { loadUsers(); }, []);
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   function startEdit(u: User) {
     setEditingId(u.id);
     setEditName(u.name);
     setEditRole(u.role);
-    setError('');
   }
 
   function cancelEdit() {
     setEditingId(null);
-    setError('');
   }
 
   async function saveEdit(id: string) {
     setSaving(true);
-    setError('');
     try {
       await api.patch(`/api/users/${id}`, { name: editName, role: editRole });
       setEditingId(null);
+      success('User updated');
       loadUsers();
     } catch {
-      setError('Save failed');
+      toastError('Save failed');
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete user "${name}"?`)) return;
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await api.delete(`/api/users/${id}`);
+      await api.delete(`/api/users/${deleteTarget.id}`);
+      success(`Deleted "${deleteTarget.name}"`);
+      setDeleteTarget(null);
       loadUsers();
     } catch (e: unknown) {
       const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      alert(msg || 'Delete failed');
+      toastError(msg || 'Delete failed');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -75,6 +103,7 @@ export default function UsersPage() {
       await api.post('/api/users', form);
       setShowAdd(false);
       setForm(emptyForm);
+      success('User created');
       loadUsers();
     } catch (e: unknown) {
       const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error;
@@ -86,178 +115,180 @@ export default function UsersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Users</h1>
-        <button
-          onClick={() => { setShowAdd(true); setAddError(''); setForm(emptyForm); }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+          <p className="text-sm text-muted-foreground">Manage user accounts and roles</p>
+        </div>
+        <Button
+          onClick={() => {
+            setShowAdd(true);
+            setAddError('');
+            setForm(emptyForm);
+          }}
         >
-          + Add User
-        </button>
+          <Plus />
+          Add User
+        </Button>
       </div>
 
-      {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
-
       {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="bg-white rounded-xl shadow overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
-              <tr>
-                <th className="px-6 py-3 text-left">Name</th>
-                <th className="px-6 py-3 text-left">Email</th>
-                <th className="px-6 py-3 text-left">Role</th>
-                <th className="px-6 py-3 text-left">Created</th>
-                <th className="px-6 py-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {users.map((u) => (
-                <tr key={u.id}>
-                  <td className="px-6 py-4">
-                    {editingId === u.id ? (
-                      <input
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        className="border rounded px-2 py-1 text-sm w-36"
-                      />
-                    ) : u.name}
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">{u.email}</td>
-                  <td className="px-6 py-4">
-                    {editingId === u.id ? (
-                      <select
-                        value={editRole}
-                        onChange={(e) => setEditRole(e.target.value as 'USER' | 'ADMIN')}
-                        className="border rounded px-2 py-1 text-sm"
-                      >
-                        <option value="USER">USER</option>
-                        <option value="ADMIN">ADMIN</option>
-                      </select>
-                    ) : (
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${u.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
-                        {u.role}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">{new Date(u.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4">
-                    {editingId === u.id ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => saveEdit(u.id)}
-                          disabled={saving}
-                          className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50"
-                        >
-                          {saving ? 'Saving...' : 'Save'}
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => startEdit(u)}
-                          className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(u.id, u.name)}
-                          className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {users.length === 0 && (
-            <p className="text-center text-gray-400 py-8">No users found</p>
-          )}
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
         </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((u) => (
+              <TableRow key={u.id}>
+                <TableCell className="font-medium">
+                  {editingId === u.id ? (
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="h-8 w-40"
+                    />
+                  ) : (
+                    u.name
+                  )}
+                </TableCell>
+                <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                <TableCell>
+                  {editingId === u.id ? (
+                    <Select
+                      value={editRole}
+                      onChange={(e) => setEditRole(e.target.value as 'USER' | 'ADMIN')}
+                      className="h-8 w-28"
+                    >
+                      <option value="USER">USER</option>
+                      <option value="ADMIN">ADMIN</option>
+                    </Select>
+                  ) : (
+                    <Badge variant={u.role === 'ADMIN' ? 'default' : 'secondary'}>{u.role}</Badge>
+                  )}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {new Date(u.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {editingId === u.id ? (
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" variant="success" onClick={() => saveEdit(u.id)} loading={saving}>
+                        Save
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={cancelEdit}>
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" variant="outline" onClick={() => startEdit(u)}>
+                        <Pencil />
+                        Edit
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={() => setDeleteTarget(u)}>
+                        <Trash2 />
+                        Delete
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+            {users.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                  No users found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       )}
 
       {/* Add User Modal */}
-      {showAdd && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold mb-4">Add User</h2>
-            <form onSubmit={handleAdd} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Full name"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="email@example.com"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Password"
-                  required
-                  minLength={6}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value as 'USER' | 'ADMIN' })}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="USER">USER</option>
-                  <option value="ADMIN">ADMIN</option>
-                </select>
-              </div>
-              {addError && <p className="text-red-500 text-sm">{addError}</p>}
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={adding}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {adding ? 'Creating...' : 'Create User'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAdd(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-200"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+      <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add User" description="Create a new user account">
+        <form onSubmit={handleAdd} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="add-name">Name</Label>
+            <Input
+              id="add-name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Full name"
+              required
+            />
           </div>
-        </div>
-      )}
+          <div className="space-y-1.5">
+            <Label htmlFor="add-email">Email</Label>
+            <Input
+              id="add-email"
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="email@example.com"
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="add-password">Password</Label>
+            <Input
+              id="add-password"
+              type="password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              placeholder="Password"
+              required
+              minLength={6}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="add-role">Role</Label>
+            <Select
+              id="add-role"
+              value={form.role}
+              onChange={(e) => setForm({ ...form, role: e.target.value as 'USER' | 'ADMIN' })}
+            >
+              <option value="USER">USER</option>
+              <option value="ADMIN">ADMIN</option>
+            </Select>
+          </div>
+          {addError && <p className="text-sm text-destructive">{addError}</p>}
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={() => setShowAdd(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={adding}>
+              Create User
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Delete user"
+        description={
+          deleteTarget ? `This will permanently delete "${deleteTarget.name}". This action cannot be undone.` : ''
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

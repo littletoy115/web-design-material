@@ -1,13 +1,32 @@
+import { Activity, DollarSign, Users } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+
+const stats = [
+  { label: 'Total Users', value: '—', icon: Users, tint: 'bg-primary/10 text-primary' },
+  { label: 'Active Sessions', value: '—', icon: Activity, tint: 'bg-success/12 text-success' },
+  { label: 'Revenue', value: '—', icon: DollarSign, tint: 'bg-accent text-accent-foreground' },
+];
+
 export default function DashboardPage() {
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      <div className="grid grid-cols-3 gap-6">
-        {[{ label: 'Total Users', value: '—' }, { label: 'Active Sessions', value: '—' }, { label: 'Revenue', value: '—' }].map((card) => (
-          <div key={card.label} className="bg-white rounded-xl p-6 shadow">
-            <p className="text-gray-500 text-sm">{card.label}</p>
-            <p className="text-3xl font-bold mt-2">{card.value}</p>
-          </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">Overview of your workspace</p>
+      </div>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {stats.map(({ label, value, icon: Icon, tint }) => (
+          <Card key={label}>
+            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+              <div className={`flex size-9 items-center justify-center rounded-md ${tint}`}>
+                <Icon className="size-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold tracking-tight">{value}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>
