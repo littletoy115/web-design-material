@@ -188,6 +188,25 @@ export default function FittingPage() {
   const active = filters.find((f) => f.id === filter);
   const shown = active ? inSlot.filter(active.keep) : inSlot;
 
+  // Start downloading the mannequin and the worn pieces now, alongside the 3D viewer's code,
+  // instead of after it has loaded. Same request mode as three's loader, so the browser reuses it.
+  const modelKey = [gender, ...items.map((i) => i.model ?? '')].join(',');
+  useEffect(() => {
+    if (!REALISTIC) return;
+    const files = ['body', baseLayers3d.top, baseLayers3d.bottom, ...items.map((i) => i.model)];
+    for (const f of files) {
+      if (!f) continue;
+      const href = `/models/${gender}/${f}.glb`;
+      if (document.head.querySelector(`link[href="${href}"]`)) continue;
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'fetch';
+      link.crossOrigin = 'anonymous';
+      link.href = href;
+      document.head.appendChild(link);
+    }
+  }, [modelKey]);
+
   const updateScroll = () => {
     const el = track.current;
     if (!el) return;

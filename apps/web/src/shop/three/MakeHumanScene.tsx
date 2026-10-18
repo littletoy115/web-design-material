@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { DRACOLoader, DRACO_GLTF_CONFIG } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import type { Slot } from '../data';
 import { builds, type Build, type Gender } from './body';
 import type { FitItem } from './fitItem';
@@ -13,7 +13,10 @@ import { makeWeaveTexture } from './fabricTexture';
  * space. Only the garments being worn are downloaded.
  */
 
-const draco = new DRACOLoader().setDecoderPath('/draco/');
+// glTF-only Draco decoder that ships with three (bundled with hashed names, so it caches well)
+const draco = new DRACOLoader().setDecoderPath(DRACO_GLTF_CONFIG);
+// fetch and compile the decoder now, while the model files are still downloading
+draco.preload();
 const loader = new GLTFLoader().setDRACOLoader(draco);
 const cache = new Map<string, Promise<GLTF>>();
 

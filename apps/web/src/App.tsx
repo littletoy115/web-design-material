@@ -1,11 +1,15 @@
+import { lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import SiteLayout from './shop/components/SiteLayout';
 import HomePage from './shop/pages/HomePage';
-import CollectionPage from './shop/pages/CollectionPage';
-import StoriesPage from './shop/pages/StoriesPage';
-import ReviewsPage from './shop/pages/ReviewsPage';
-import ContactPage from './shop/pages/ContactPage';
-import FittingPage from './shop/pages/FittingPage';
+import { pageLoaders } from './shop/routes';
+
+// Home is in the main bundle; every other page is its own chunk.
+const CollectionPage = lazy(pageLoaders['/collection']);
+const FittingPage = lazy(pageLoaders['/fitting']);
+const StoriesPage = lazy(pageLoaders['/stories']);
+const ReviewsPage = lazy(pageLoaders['/reviews']);
+const ContactPage = lazy(pageLoaders['/contact']);
 
 export default function App() {
   return (

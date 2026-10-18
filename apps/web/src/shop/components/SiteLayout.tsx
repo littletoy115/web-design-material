@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { cn } from '../cn';
 import { lineUrl, store } from '../data';
+import { pageLoaders, prefetchPage } from '../routes';
 
 const nav = [
   { to: '/', label: 'Home', end: true },
@@ -28,6 +29,18 @@ export default function SiteLayout() {
     if (!hash) window.scrollTo(0, 0);
   }, [pathname, hash]);
 
+  // Once the first page is up and the browser is idle, fetch the other pages' code (it is small;
+  // the 3D viewer is a separate chunk loaded only by the fitting room).
+  useEffect(() => {
+    const prefetchAll = () => Object.keys(pageLoaders).forEach(prefetchPage);
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(prefetchAll, { timeout: 4000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const t = setTimeout(prefetchAll, 2000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div className="flex min-h-dvh flex-col">
       <a
@@ -47,7 +60,13 @@ export default function SiteLayout() {
             <ul className="flex items-center gap-1">
               {nav.map((item) => (
                 <li key={item.to}>
-                  <NavLink to={item.to} end={item.end} className={linkClass}>
+                  <NavLink
+                    to={item.to}
+                    end={item.end}
+                    className={linkClass}
+                    onMouseEnter={() => prefetchPage(item.to)}
+                    onFocus={() => prefetchPage(item.to)}
+                  >
                     {item.label}
                   </NavLink>
                 </li>
@@ -81,6 +100,7 @@ export default function SiteLayout() {
                       cn('flex min-h-12 items-center px-2 text-base', isActive ? 'font-medium text-hom' : 'text-ink')
                     }
                     onClick={() => setMenuOpen(false)}
+                    onTouchStart={() => prefetchPage(item.to)}
                   >
                     {item.label}
                   </NavLink>
@@ -92,7 +112,10 @@ export default function SiteLayout() {
       </header>
 
       <main id="main" className="flex-1">
-        <Outlet />
+        {/* pages other than home are separate chunks; keep the header and footer while one loads */}
+        <Suspense fallback={<div className="min-h-[60vh]" aria-busy="true" />}>
+          <Outlet />
+        </Suspense>
       </main>
 
       <footer className="mt-24 bg-ink pb-[env(safe-area-inset-bottom)] text-cotton">
