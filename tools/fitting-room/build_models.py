@@ -27,6 +27,7 @@ import zipfile
 import bpy
 from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
+from mathutils.kdtree import KDTree
 from bl_ext.user_default.mpfb.services import AssetService, HumanService, LocationService, TargetService
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -203,13 +204,22 @@ def ranges(ids):
     return ",".join(runs)
 
 
-def covered_vertices(basemesh, clothes, reach=0.03):
+def real_body_vertices(basemesh):
+    """Ids of the actual body. The base mesh also carries helper geometry (tights, skirt, hair,
+    teeth...) that MPFB hides with a mask; it must never count as covered or nearest skin."""
+    group = basemesh.vertex_groups["body"].index
+    return {v.index for v in basemesh.data.vertices if any(g.group == group for g in v.groups)}
+
+
+def covered_vertices(basemesh, clothes, reach=0.02, cover_reach=0.08):
     """
     Body vertices a garment covers: the asset's own MakeHuman delete group (when it has one),
     plus every vertex whose outward normal hits the garment within `reach` metres. Many
     community assets ship without a delete group, and the ray test also catches spots the
     author's group misses. Open areas (necklines, cuffs) stay visible because their rays
     leave without touching cloth.
+    Returns (hide, cover): hide is that skin; cover reaches `cover_reach` and is what the
+    garment hides on garments worn under it.
     """
     ids = set()
     masks = [m for m in basemesh.modifiers if m.type == "MASK" and m.name.startswith("Delete")]
@@ -230,17 +240,72 @@ def covered_vertices(basemesh, clothes, reach=0.03):
     bvh = BVHTree.FromPolygons([v.co.copy() for v in cloth_mesh.vertices], [tuple(p.vertices) for p in cloth_mesh.polygons])
     to_world = basemesh.matrix_world
     normal_world = to_world.to_3x3().inverted().transposed()
+    hits, far = set(), set()
+    real = real_body_vertices(basemesh)
     for v in body_mesh.vertices:
+        if v.index not in real:
+            continue
         co = to_world @ v.co
         n = (normal_world @ v.normal).normalized()
-        hit, _, _, dist = bvh.ray_cast(co + n * 0.0005, n, reach)
-        if hit is not None:
-            ids.add(v.index)
+        hit, face_normal, _, dist = bvh.ray_cast(co + n * 0.0005, n, cover_reach)
+        # Count only cloth facing the same way as the skin: hitting the inside of a collar or
+        # cuff from the neck or wrist is not "covered".
+        if hit is not None and abs(face_normal.dot(n)) > 0.4:
+            far.add(v.index)
+            if dist <= reach:
+                hits.add(v.index)
+    # Erode two rings, so skin right at a garment's edge stays: hiding it would open a hole
+    # where the cloth ends (necklines, sleeve hems).
+    neighbours = {}
+    for e in body_mesh.edges:
+        a, b = e.vertices
+        neighbours.setdefault(a, []).append(b)
+        neighbours.setdefault(b, []).append(a)
+    for _ in range(2):
+        hits = {i for i in hits if all(n in hits for n in neighbours.get(i, ()))}
+    # What this garment hides on garments worn under it: everything under the cloth, out to
+    # `cover_reach` and not eroded, since an inner garment poking out (a trouser waist through a
+    # shirt hem) is the problem there, not a hole in the skin.
+    cover = ids | far | hits
+    ids |= hits
     body_eval.to_mesh_clear()
     cloth_eval.to_mesh_clear()
     for m in mask_mods:
         m.show_viewport = True
-    return ranges(ids)
+    return ranges(ids), ranges(cover)
+
+
+def tag_nearest_body_vertex(basemesh, clothes):
+    """
+    Give every garment vertex the id of the nearest body vertex (_VID). The viewer uses it to
+    hide the parts of an inner garment that an outer one covers (a trouser waist under a shirt),
+    using the outer garment's list of covered body vertices.
+    """
+    mask_mods = [m for m in basemesh.modifiers if m.type == "MASK"]
+    for m in mask_mods:
+        m.show_viewport = False
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    body_eval = basemesh.evaluated_get(depsgraph)
+    body_mesh = body_eval.to_mesh()
+    kd = KDTree(len(body_mesh.vertices))
+    to_world = basemesh.matrix_world
+    real = real_body_vertices(basemesh)
+    for v in body_mesh.vertices:
+        if v.index in real:
+            kd.insert(to_world @ v.co, v.index)
+    kd.balance()
+    cloth_eval = clothes.evaluated_get(depsgraph)
+    cloth_mesh = cloth_eval.to_mesh()
+    ids = [float(kd.find(clothes.matrix_world @ v.co)[1]) for v in cloth_mesh.vertices]
+    body_eval.to_mesh_clear()
+    cloth_eval.to_mesh_clear()
+    for m in mask_mods:
+        m.show_viewport = True
+    # the garment keeps its modifiers (fit, pose) until export applies them; the attribute rides
+    # on the base mesh, whose vertex count matches the evaluated one for these garments
+    if len(ids) == len(clothes.data.vertices):
+        attr = clothes.data.attributes.get("_vid") or clothes.data.attributes.new("_vid", "FLOAT", "POINT")
+        attr.data.foreach_set("value", ids)
 
 
 def main():
@@ -264,11 +329,10 @@ def main():
         disp.strength = -0.004
         disp.mid_level = 0.0
         # Number every body vertex (_vid) so the viewer can hide the skin a garment covers.
-        # Exported without Draco, which would drop the custom attribute.
         vid = basemesh.data.attributes.new("_vid", "FLOAT", "POINT")
         vid.data.foreach_set("value", [float(i) for i in range(len(basemesh.data.vertices))])
         body_file = f"{gender}/body.glb"
-        export_glb(basemesh, os.path.join(out, body_file), materials=False, draco=False, attributes=True)
+        export_glb(basemesh, os.path.join(out, body_file), materials=False, attributes=True)
         basemesh.modifiers.remove(disp)
         manifest["bodies"][gender] = {"file": body_file, "height": round(basemesh.dimensions.z, 3)}
         print(f"[{gender}] body exported")
@@ -280,6 +344,7 @@ def main():
             mhclo = find_mhclo(data_dir, item["asset"])
             entry = manifest["items"].setdefault(iid, {})
             entry.update({k: item[k] for k in ("asset", "name", "slot", "kind")})
+            entry["tucked"] = bool(item.get("tucked"))
             if not mhclo:
                 entry["error"] = "asset not installed"
                 print(f"  ! {iid}: not installed")
@@ -291,9 +356,10 @@ def main():
                 shrink_textures(clothes, args.max_tex)
                 # MakeHuman hides the body under a garment with a "Delete" vertex group; ship it
                 # with the garment (glTF extras) so the viewer hides the same skin.
-                clothes["hide"] = covered_vertices(basemesh, clothes)
+                clothes["hide"], clothes["cover"] = covered_vertices(basemesh, clothes)
+                tag_nearest_body_vertex(basemesh, clothes)
                 rel = f"{gender}/{iid}.glb"
-                export_glb(clothes, os.path.join(out, rel))
+                export_glb(clothes, os.path.join(out, rel), attributes=True)
                 entry.setdefault("files", {})[gender] = rel
                 entry.pop("error", None)
                 HumanService.unload_mhclo_asset(basemesh, clothes)

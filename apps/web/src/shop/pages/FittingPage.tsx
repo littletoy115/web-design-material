@@ -5,6 +5,7 @@ import { baseLayers3d, fabricById, formatPrice, productById, products, type Cate
 import ProductImage from '../components/ProductImage';
 import { builds, genders, skinTones, type Build, type Gender } from '../three/body';
 import type { FitItem } from '../three/fitItem';
+import type { CameraView } from '../three/Fitting3D';
 import { usePageTitle } from '../usePageTitle';
 
 // three.js is large; only download it when someone opens the fitting room.
@@ -63,8 +64,9 @@ function savedOutfit(): Outfit | null {
 
 function initialOutfit(itemId: string | null): Outfit {
   const base: Outfit = savedOutfit() ?? { top: 'p09', bottom: 'p04', shoes: 'p22' };
-  const item = itemId ? products.find((p) => p.id === itemId) : undefined;
-  return item ? wear(base, item) : base;
+  // ?item=p09 or a whole look: ?item=s-polo,s-trouser
+  const items = (itemId ?? '').split(',').flatMap((id) => products.filter((p) => p.id === id));
+  return items.reduce(wear, base);
 }
 
 function sizeNote(p: Product, suggested: string) {
@@ -149,12 +151,16 @@ export default function FittingPage() {
   const [build, setBuild] = useState<Build>('regular');
   const [outfit, setOutfit] = useState<Outfit>(() => initialOutfit(params.get('item')));
   const [slot, setSlot] = useState<Slot>(() => {
-    const item = products.find((p) => p.id === params.get('item'));
+    const item = products.find((p) => p.id === params.get('item')?.split(',')[0]);
     return item?.slot ?? 'top';
   });
   const [filter, setFilter] = useState<string>('all');
   const [menu, setMenu] = useState<'skin' | 'build' | null>(null);
   const [autoRotate, setAutoRotate] = useState(false);
+  const [view, setView] = useState<{ id: CameraView; nonce: number }>(() => {
+    const v = params.get('view');
+    return { id: v === 'top' || v === 'shoes' ? v : 'full', nonce: 0 };
+  });
   const [saved, setSaved] = useState(false);
   const track = useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = useState({ back: false, more: false });
@@ -162,7 +168,7 @@ export default function FittingPage() {
   const worn = LOOK_ORDER.filter((s) => outfit[s]).map((s) => productById(outfit[s]!));
   const items: FitItem[] = worn.map((p) => {
     const f = p.fabricId ? fabricById(p.fabricId) : undefined;
-    return { id: p.id, name: p.name, slot: p.slot, model: p.model, garment: p.garment, fabric: f && { weave: f.weave, colors: f.colors } };
+    return { id: p.id, name: p.name, slot: p.slot, model: p.model, tucked: p.tucked, garment: p.garment, fabric: f && { weave: f.weave, colors: f.colors } };
   });
   const total = worn.reduce((sum, p) => sum + p.price, 0);
   const suggestedSize = builds.find((b) => b.id === build)!.size;
@@ -264,6 +270,8 @@ export default function FittingPage() {
                 realistic={REALISTIC}
                 baseLayers={baseLayers3d}
                 autoRotate={autoRotate}
+                view={view.id}
+                viewNonce={view.nonce}
               />
             </Suspense>
 
@@ -334,6 +342,30 @@ export default function FittingPage() {
                   ))}
                 </StagePopover>
               </div>
+            </div>
+
+            {/* Quick camera views; drag, right-drag and scroll still move freely */}
+            <div role="group" aria-label="Camera view" className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1 rounded-full border border-ink/[0.08] bg-white/90 p-1">
+              {(
+                [
+                  ['full', 'Full'],
+                  ['top', 'Top'],
+                  ['shoes', 'Shoes'],
+                ] as [CameraView, string][]
+              ).map(([id, text]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={view.id === id}
+                  onClick={() => setView((v) => ({ id, nonce: v.nonce + 1 }))}
+                  className={cn(
+                    'min-h-9 rounded-full px-3.5 text-xs transition-colors',
+                    view.id === id ? 'bg-ink text-cotton' : 'text-ink hover:bg-ink/5'
+                  )}
+                >
+                  {text}
+                </button>
+              ))}
             </div>
 
             <button

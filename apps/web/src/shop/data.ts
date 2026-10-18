@@ -60,6 +60,8 @@ export interface Product {
   credit?: { author: string; license: string };
   /** sample piece added to try out the 3D fitting room, not a Homfaai product */
   sample?: boolean;
+  /** a top worn tucked into the trousers (layers under them in 3D) */
+  tucked?: boolean;
 }
 
 export interface Review {
@@ -208,7 +210,7 @@ const MODEL_FOR: Partial<Record<Garment, string>> = {
 };
 
 /* Fitted 3D garments built from MakeHuman assets (tools/fitting-room). */
-type Catalog3dItem = { id: string; name: string; slot: string; kind: string; author: string; license: string; thumb: string };
+type Catalog3dItem = { id: string; name: string; slot: string; kind: string; tucked?: boolean; author: string; license: string; thumb: string };
 const items3d = (catalog3d as { items: Catalog3dItem[] }).items;
 const built3d = new Set(items3d.map((i) => i.id));
 
@@ -237,6 +239,7 @@ const samples: Product[] = items3d
       image: i.thumb || undefined,
       credit: { author: i.author, license: i.license },
       sample: true,
+      tucked: !!i.tucked,
     };
   });
 

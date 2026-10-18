@@ -1,10 +1,10 @@
 {
-  "_comment": "Garments built into the 3D fitting room. asset = MakeHuman clothes folder name; slot = where it is worn; kind = shop category. Run build_models.py after editing.",
+  "_comment": "Garments built into the 3D fitting room. asset = MakeHuman clothes folder name; slot = where it is worn; kind = shop category; tucked = a top worn inside the trousers. Run build_models.py after editing.",
   "items": [
     { "asset": "wolgade_female_top_01", "name": "Base Top", "slot": "base-top", "kind": "Base" },
     { "asset": "wolgade_female_panties_01", "name": "Base Briefs", "slot": "base-bottom", "kind": "Base" },
     { "asset": "elvs_crude_t-shirt_male", "name": "Classic Crew Tee", "slot": "top", "kind": "Tops" },
-    { "asset": "toigo_basic_tucked_t-shirt", "name": "Fitted Tee", "slot": "top", "kind": "Tops" },
+    { "asset": "toigo_basic_tucked_t-shirt", "name": "Fitted Tee", "slot": "top", "kind": "Tops", "tucked": true },
     { "asset": "elvs_male_logo_tshirt1", "name": "Logo Tee", "slot": "top", "kind": "Tops" },
     { "asset": "namuhekam_male_polo_shirt", "name": "Polo Shirt", "slot": "top", "kind": "Tops" },
     { "asset": "elvs_male_shirt_untucked_bd1", "name": "Button-Down Shirt", "slot": "top", "kind": "Tops" },

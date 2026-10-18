@@ -10,6 +10,8 @@ export interface FitItem {
   model?: string;
   /** drawn shape, for the built-in (code-generated) mannequin */
   garment?: Garment;
+  /** a top worn tucked into the trousers */
+  tucked?: boolean;
   /** Homfaai woven fabric laid over the garment */
   fabric?: { weave: Weave; colors: [string, string] };
 }

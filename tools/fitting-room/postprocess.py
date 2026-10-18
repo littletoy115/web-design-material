@@ -45,6 +45,7 @@ for iid, e in manifest["items"].items():
         "name": e["name"],
         "slot": e["slot"],
         "kind": e["kind"],
+        "tucked": bool(e.get("tucked")),
         "author": e.get("author", ""),
         "license": e.get("license", ""),
         "thumb": f"/models/thumbs/{iid}.webp" if os.path.exists(os.path.join(thumbs, f"{iid}.webp")) else "",
