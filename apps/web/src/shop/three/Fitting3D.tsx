@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { Canvas, useThree } from '@react-three/fiber';
 import { ContactShadows, OrbitControls } from '@react-three/drei';
@@ -71,21 +71,17 @@ interface Fitting3DProps {
   /** true when the MakeHuman models exist in /models */
   realistic: boolean;
   baseLayers: { top?: string; bottom?: string };
+  autoRotate: boolean;
 }
 
-export default function Fitting3D({ gender, skin, build, items, label, realistic, baseLayers }: Fitting3DProps) {
-  const [autoRotate, setAutoRotate] = useState(false);
+/** The 3D stage only: it fills its parent, which places the controls around it. */
+export default function Fitting3D({ gender, skin, build, items, label, realistic, baseLayers, autoRotate }: Fitting3DProps) {
   const loading = usePendingModels();
   const missing = items.filter((i) => (realistic ? !i.model : !(i.garment && i.fabric)));
 
   return (
-    <div>
-      <div
-        className="relative aspect-[3/4] w-full"
-        style={{ background: 'linear-gradient(180deg, #f4f4f2 0%, #e9e9e6 100%)' }}
-        role="img"
-        aria-label={`${label} (3D model, drag to rotate)`}
-      >
+    <div className="absolute inset-0">
+      <div className="absolute inset-0" role="img" aria-label={`${label} (3D model, drag to rotate)`}>
         <Canvas
           camera={{ position: [0.95, 1.05, 3.8], fov: 30 }}
           dpr={[1, 2]}
@@ -122,27 +118,14 @@ export default function Fitting3D({ gender, skin, build, items, label, realistic
             autoRotateSpeed={2.4}
           />
         </Canvas>
+      </div>
+      <div className="pointer-events-none absolute bottom-4 left-4 right-20 grid gap-1 text-xs text-ink/60">
         {realistic && loading > 0 && (
-          <p role="status" className="absolute inset-x-0 top-3 text-center text-xs text-ink/60">
+          <p role="status">
             Loading {loading} {loading === 1 ? 'piece' : 'pieces'}…
           </p>
         )}
-      </div>
-
-      {missing.length > 0 && (
-        <p className="mt-2 text-xs text-ink/55">Not in the 3D model yet: {missing.map((i) => i.name).join(', ')}</p>
-      )}
-
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="text-xs text-ink/55">Drag to rotate. Scroll or pinch to zoom in on the fabric.</p>
-        <button
-          type="button"
-          aria-pressed={autoRotate}
-          onClick={() => setAutoRotate((a) => !a)}
-          className="inline-flex min-h-11 shrink-0 items-center border border-ink/20 px-3 text-sm hover:border-ink/60"
-        >
-          {autoRotate ? 'Stop rotating' : 'Auto-rotate'}
-        </button>
+        {missing.length > 0 && <p>Not in the 3D model yet: {missing.map((i) => i.name).join(', ')}</p>}
       </div>
     </div>
   );

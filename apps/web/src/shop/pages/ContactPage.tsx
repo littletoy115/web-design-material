@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { cn } from '../cn';
 import { lineUrl, store } from '../data';
 import { usePageTitle } from '../usePageTitle';
@@ -32,7 +33,9 @@ const fieldClass = (invalid: boolean) =>
 
 export default function ContactPage() {
   usePageTitle('Contact');
-  const [form, setForm] = useState<FormState>(empty);
+  const [params] = useSearchParams();
+  // the fitting room's "Shop this look" sends the outfit as the opening message
+  const [form, setForm] = useState<FormState>(() => ({ ...empty, message: params.get('message') ?? '' }));
   const [errors, setErrors] = useState<Errors>({});
   const [sentTo, setSentTo] = useState<string | null>(null);
 

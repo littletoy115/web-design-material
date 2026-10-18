@@ -26,6 +26,7 @@ import zipfile
 
 import bpy
 from mathutils import Matrix, Vector
+from mathutils.bvhtree import BVHTree
 from bl_ext.user_default.mpfb.services import AssetService, HumanService, LocationService, TargetService
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -169,7 +170,7 @@ def shrink_textures(obj, max_px):
                 img.scale(max(1, int(img.size[0] * k)), max(1, int(img.size[1] * k)))
 
 
-def export_glb(obj, path, *, materials=True):
+def export_glb(obj, path, *, materials=True, draco=True, attributes=False):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
@@ -178,11 +179,68 @@ def export_glb(obj, path, *, materials=True):
         filepath=path, use_selection=True, export_format="GLB", export_apply=True,
         export_skins=False, export_animations=False, export_morph=False, export_yup=True,
         export_materials="EXPORT" if materials else "NONE", export_texcoords=materials,
+        export_attributes=attributes, export_extras=True,
         export_image_format="WEBP", export_image_quality=80,
-        export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
+        export_draco_mesh_compression_enable=draco, export_draco_mesh_compression_level=6,
         export_draco_position_quantization=14, export_draco_normal_quantization=10,
         export_draco_texcoord_quantization=12,
     )
+
+
+def ranges(ids):
+    """Sorted vertex ids as compact ranges ("12-40,57")."""
+    runs, start, prev = [], None, None
+    for i in sorted(ids):
+        if start is None:
+            start = prev = i
+        elif i == prev + 1:
+            prev = i
+        else:
+            runs.append(f"{start}-{prev}" if prev > start else str(start))
+            start = prev = i
+    if start is not None:
+        runs.append(f"{start}-{prev}" if prev > start else str(start))
+    return ",".join(runs)
+
+
+def covered_vertices(basemesh, clothes, reach=0.03):
+    """
+    Body vertices a garment covers: the asset's own MakeHuman delete group (when it has one),
+    plus every vertex whose outward normal hits the garment within `reach` metres. Many
+    community assets ship without a delete group, and the ray test also catches spots the
+    author's group misses. Open areas (necklines, cuffs) stay visible because their rays
+    leave without touching cloth.
+    """
+    ids = set()
+    masks = [m for m in basemesh.modifiers if m.type == "MASK" and m.name.startswith("Delete")]
+    group = basemesh.vertex_groups.get(masks[-1].vertex_group) if masks else None
+    if group:
+        ids.update(v.index for v in basemesh.data.vertices if any(g.group == group.index for g in v.groups))
+
+    # Evaluate the posed body with every mask off, so vertex indices match the original mesh.
+    mask_mods = [m for m in basemesh.modifiers if m.type == "MASK"]
+    for m in mask_mods:
+        m.show_viewport = False
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    body_eval = basemesh.evaluated_get(depsgraph)
+    body_mesh = body_eval.to_mesh()
+    cloth_eval = clothes.evaluated_get(depsgraph)
+    cloth_mesh = cloth_eval.to_mesh()
+    cloth_mesh.transform(clothes.matrix_world)
+    bvh = BVHTree.FromPolygons([v.co.copy() for v in cloth_mesh.vertices], [tuple(p.vertices) for p in cloth_mesh.polygons])
+    to_world = basemesh.matrix_world
+    normal_world = to_world.to_3x3().inverted().transposed()
+    for v in body_mesh.vertices:
+        co = to_world @ v.co
+        n = (normal_world @ v.normal).normalized()
+        hit, _, _, dist = bvh.ray_cast(co + n * 0.0005, n, reach)
+        if hit is not None:
+            ids.add(v.index)
+    body_eval.to_mesh_clear()
+    cloth_eval.to_mesh_clear()
+    for m in mask_mods:
+        m.show_viewport = True
+    return ranges(ids)
 
 
 def main():
@@ -205,8 +263,12 @@ def main():
         disp = basemesh.modifiers.new("inset", "DISPLACE")
         disp.strength = -0.004
         disp.mid_level = 0.0
+        # Number every body vertex (_vid) so the viewer can hide the skin a garment covers.
+        # Exported without Draco, which would drop the custom attribute.
+        vid = basemesh.data.attributes.new("_vid", "FLOAT", "POINT")
+        vid.data.foreach_set("value", [float(i) for i in range(len(basemesh.data.vertices))])
         body_file = f"{gender}/body.glb"
-        export_glb(basemesh, os.path.join(out, body_file), materials=False)
+        export_glb(basemesh, os.path.join(out, body_file), materials=False, draco=False, attributes=True)
         basemesh.modifiers.remove(disp)
         manifest["bodies"][gender] = {"file": body_file, "height": round(basemesh.dimensions.z, 3)}
         print(f"[{gender}] body exported")
@@ -227,6 +289,9 @@ def main():
                 clothes = HumanService.add_mhclo_asset(
                     mhclo, basemesh, asset_type="Clothes", subdiv_levels=0, material_type="GAMEENGINE")
                 shrink_textures(clothes, args.max_tex)
+                # MakeHuman hides the body under a garment with a "Delete" vertex group; ship it
+                # with the garment (glTF extras) so the viewer hides the same skin.
+                clothes["hide"] = covered_vertices(basemesh, clothes)
                 rel = f"{gender}/{iid}.glb"
                 export_glb(clothes, os.path.join(out, rel))
                 entry.setdefault("files", {})[gender] = rel

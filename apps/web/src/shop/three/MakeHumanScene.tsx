@@ -64,25 +64,71 @@ function useGltf(url: string | undefined) {
 }
 
 // Garments on outer layers win the depth test over those underneath where they touch.
-const LAYER: Record<Slot | 'base', number> = { base: 0, shoes: 1, bottom: 1, top: 2, dress: 2, outer: 3, hat: 1 };
+// Shoes sit over the trouser hem, outerwear over tops.
+const LAYER: Record<Slot | 'base', number> = { base: 0, bottom: 1, hat: 1, shoes: 2, top: 2, dress: 2, outer: 3 };
 
-function Body({ gender, skin }: { gender: Gender; skin: string }) {
+/** Expand "12-40,57" into a lookup of hidden body vertex ids. */
+function hiddenLookup(ranges: string[], size: number) {
+  const hidden = new Uint8Array(size);
+  for (const list of ranges) {
+    for (const part of list.split(',')) {
+      if (!part) continue;
+      const [a, b] = part.split('-').map(Number);
+      for (let i = a; i <= (b ?? a) && i < size; i++) hidden[i] = 1;
+    }
+  }
+  return hidden;
+}
+
+/**
+ * The bare body. Garments carry MakeHuman's delete groups (which skin they cover); the body
+ * drops those triangles so skin never pokes through tight clothes, shoes or hats.
+ */
+function Body({ gender, skin, hide }: { gender: Gender; skin: string; hide: string[] }) {
   const gltf = useGltf(`/models/${gender}/body.glb`);
   const material = useMemo(
     () => new THREE.MeshPhysicalMaterial({ color: skin, roughness: 0.35, clearcoat: 0.3, clearcoatRoughness: 0.25 }),
     [skin]
   );
   useEffect(() => () => material.dispose(), [material]);
-  const scene = useMemo(() => {
+
+  // own copy of the geometry, since its triangle list is rewritten per outfit
+  const parts = useMemo(() => {
     if (!gltf) return null;
-    const s = gltf.scene.clone(true);
-    s.traverse((o) => {
-      const m = o as THREE.Mesh;
-      if (m.isMesh) m.material = material;
+    const scene = gltf.scene.clone(true);
+    const meshes: { mesh: THREE.Mesh; index: ArrayLike<number>; vid?: THREE.BufferAttribute }[] = [];
+    scene.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      mesh.geometry = mesh.geometry.clone();
+      mesh.material = material;
+      const vid = (mesh.geometry.getAttribute('_vid') ?? mesh.geometry.getAttribute('_VID')) as THREE.BufferAttribute | undefined;
+      const index = mesh.geometry.index ? Array.from(mesh.geometry.index.array) : [];
+      meshes.push({ mesh, index, vid });
     });
-    return s;
+    return { scene, meshes };
   }, [gltf, material]);
-  return scene ? <primitive object={scene} /> : null;
+
+  const hideKey = hide.join('|');
+  useEffect(() => {
+    if (!parts) return;
+    for (const { mesh, index, vid } of parts.meshes) {
+      if (!vid || index.length === 0) continue;
+      let max = 0;
+      for (let i = 0; i < vid.count; i++) max = Math.max(max, vid.getX(i));
+      const hidden = hiddenLookup(hide, max + 1);
+      const kept: number[] = [];
+      for (let t = 0; t < index.length; t += 3) {
+        const a = index[t], b = index[t + 1], c = index[t + 2];
+        if (hidden[vid.getX(a)] || hidden[vid.getX(b)] || hidden[vid.getX(c)]) continue;
+        kept.push(a, b, c);
+      }
+      mesh.geometry.setIndex(kept);
+    }
+  }, [parts, hideKey]);
+  useEffect(() => () => parts?.meshes.forEach(({ mesh }) => mesh.geometry.dispose()), [parts]);
+
+  return parts ? <primitive object={parts.scene} /> : null;
 }
 
 interface GarmentProps {
@@ -90,14 +136,19 @@ interface GarmentProps {
   model: string;
   layer: number;
   fabric?: FitItem['fabric'];
-  onReady?: (key: string) => void;
+  onReady?: (key: string, hide: string) => void;
 }
 
 function Garment({ gender, model, layer, fabric, onReady }: GarmentProps) {
   const url = `/models/${gender}/${model}.glb`;
   const gltf = useGltf(url);
   useEffect(() => {
-    if (gltf) onReady?.(url);
+    if (!gltf) return;
+    let hide = '';
+    gltf.scene.traverse((o) => {
+      if (typeof o.userData.hide === 'string') hide += (hide ? ',' : '') + o.userData.hide;
+    });
+    onReady?.(url, hide);
   }, [gltf, url, onReady]);
   // rebuild the texture only when the cloth itself changes, not on every new props object
   const fabricKey = fabric ? `${fabric.weave}:${fabric.colors.join()}` : '';
@@ -158,19 +209,26 @@ export default function MakeHumanScene({ gender, skin, build, items, baseLayers 
 
   // Underwear covers the body until the garment that replaces it is on screen, so the
   // mannequin is never bare while downloading and never shows underwear through tight clothes.
-  const [ready, setReady] = useState<Set<string>>(() => new Set());
-  const markReady = useCallback((key: string) => setReady((r) => (r.has(key) ? r : new Set(r).add(key))), []);
-  const covered = (slots: Slot[]) =>
-    items.some((i) => i.model && slots.includes(i.slot) && ready.has(`/models/${gender}/${i.model}.glb`));
+  // url -> body vertices that garment covers, once it has loaded
+  const [ready, setReady] = useState<Map<string, string>>(() => new Map());
+  const markReady = useCallback(
+    (key: string, hide: string) => setReady((r) => (r.get(key) === hide ? r : new Map(r).set(key, hide))),
+    []
+  );
+  const urlOf = (model: string) => `/models/${gender}/${model}.glb`;
+  const covered = (slots: Slot[]) => items.some((i) => i.model && slots.includes(i.slot) && ready.has(urlOf(i.model)));
+
+  // the base top is a bra, so only the female body wears it
+  const baseTop = gender === 'female' && baseLayers.top && !covered(['top', 'dress']) ? baseLayers.top : undefined;
+  const baseBottom = baseLayers.bottom && !covered(['bottom', 'dress']) ? baseLayers.bottom : undefined;
+  const onBody = [baseTop, baseBottom, ...items.map((i) => i.model)].filter((m): m is string => !!m);
+  const hide = onBody.map((m) => ready.get(urlOf(m))).filter((h): h is string => !!h);
 
   return (
     <group scale={[w, 1, 1 + (w - 1) * 0.7]}>
-      <Body gender={gender} skin={skin} />
-      {/* the base top is a bra, so only the female body wears it */}
-      {gender === 'female' && baseLayers.top && !covered(['top', 'dress']) && (
-        <Garment gender={gender} model={baseLayers.top} layer={LAYER.base} />
-      )}
-      {baseLayers.bottom && !covered(['bottom', 'dress']) && <Garment gender={gender} model={baseLayers.bottom} layer={LAYER.base} />}
+      <Body gender={gender} skin={skin} hide={hide} />
+      {baseTop && <Garment gender={gender} model={baseTop} layer={LAYER.base} onReady={markReady} />}
+      {baseBottom && <Garment gender={gender} model={baseBottom} layer={LAYER.base} onReady={markReady} />}
       {items.map(
         (i) =>
           i.model && (
