@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "memo_documents" ALTER COLUMN "toName" DROP NOT NULL,
+ALTER COLUMN "toPosition" DROP NOT NULL,
+ALTER COLUMN "toDept" DROP NOT NULL;

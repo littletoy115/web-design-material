@@ -18,9 +18,11 @@ import {
   useToast,
 } from '@repo/ui';
 import api from '../services/api';
-import { User } from '@repo/types';
+import { User, Role } from '@repo/types';
 
-const emptyForm = { name: '', email: '', password: '', role: 'USER' as 'USER' | 'ADMIN' };
+const ROLES: Role[] = ['USER', 'ADMIN', 'SALE', 'AUDIT', 'MANAGER', 'LOGISTIC'];
+
+const emptyForm = { name: '', email: '', password: '', role: 'USER' as Role };
 
 export default function UsersPage() {
   const { success, error: toastError } = useToast();
@@ -30,7 +32,7 @@ export default function UsersPage() {
   // Edit inline
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
-  const [editRole, setEditRole] = useState<'USER' | 'ADMIN'>('USER');
+  const [editRole, setEditRole] = useState<Role>('USER');
   const [saving, setSaving] = useState(false);
 
   // Add user modal
@@ -168,11 +170,10 @@ export default function UsersPage() {
                   {editingId === u.id ? (
                     <Select
                       value={editRole}
-                      onChange={(e) => setEditRole(e.target.value as 'USER' | 'ADMIN')}
-                      className="h-8 w-28"
+                      onChange={(e) => setEditRole(e.target.value as Role)}
+                      className="h-8 w-32"
                     >
-                      <option value="USER">USER</option>
-                      <option value="ADMIN">ADMIN</option>
+                      {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                     </Select>
                   ) : (
                     <Badge variant={u.role === 'ADMIN' ? 'default' : 'secondary'}>{u.role}</Badge>
@@ -258,10 +259,9 @@ export default function UsersPage() {
             <Select
               id="add-role"
               value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value as 'USER' | 'ADMIN' })}
+              onChange={(e) => setForm({ ...form, role: e.target.value as Role })}
             >
-              <option value="USER">USER</option>
-              <option value="ADMIN">ADMIN</option>
+              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
             </Select>
           </div>
           {addError && <p className="text-sm text-destructive">{addError}</p>}

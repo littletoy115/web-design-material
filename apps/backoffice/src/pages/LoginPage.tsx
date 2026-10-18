@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { LayoutDashboard } from 'lucide-react';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from '@repo/ui';
 import { useAuthStore } from '../store/auth.store';
@@ -34,10 +34,6 @@ export default function LoginPage() {
 
     try {
       const { data } = await api.post<{ success: boolean; data: LoginResponse }>('/api/auth/login', { email, password });
-      if (data.data.user.role !== 'ADMIN') {
-        setError('Admin access only');
-        return;
-      }
       setAuth(data.data.token, data.data.user);
       navigate('/');
     } catch {
@@ -85,6 +81,12 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" loading={loading}>
               Sign In
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Don't have an account?{' '}
+              <Link to="/register" className="font-medium text-primary hover:underline">
+                Sign Up
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>

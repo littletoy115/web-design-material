@@ -11,9 +11,11 @@
     "@repo/types": "workspace:*",
     "@repo/ui": "workspace:*",
     "axios": "^1.6.0",
+    "lucide-react": "^0.454.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
+    "xlsx": "^0.18.5",
     "zustand": "^4.4.0"
   },
   "devDependencies": {
